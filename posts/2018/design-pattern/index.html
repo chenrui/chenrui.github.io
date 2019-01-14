@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="架构,设计," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="设计模式原则 依赖倒置原则  高层模块(稳定)不应该依赖低层模块(变化)，二者都应该依赖于抽象(稳定) 抽象(稳定)不应该依赖于实现细节(变化)，实现细节应该依赖于抽象(稳定)   开放封闭原则  对扩展开放，对更改封闭 类模块应该是可扩展的，但是不可修改   单一职责原则  一个类应该仅有一个引起它变化的原因   Liskov替换原则  子类必须能够替换他们的基类   接口隔离原则  针对接口编">
+<meta name="keywords" content="架构,设计">
+<meta property="og:type" content="article">
+<meta property="og:title" content="design pattern">
+<meta property="og:url" content="http://yoursite.com/posts/2018/design-pattern/index.html">
+<meta property="og:site_name" content="chenrui">
+<meta property="og:description" content="设计模式原则 依赖倒置原则  高层模块(稳定)不应该依赖低层模块(变化)，二者都应该依赖于抽象(稳定) 抽象(稳定)不应该依赖于实现细节(变化)，实现细节应该依赖于抽象(稳定)   开放封闭原则  对扩展开放，对更改封闭 类模块应该是可扩展的，但是不可修改   单一职责原则  一个类应该仅有一个引起它变化的原因   Liskov替换原则  子类必须能够替换他们的基类   接口隔离原则  针对接口编">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/template-method.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/strategy.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/observer.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/decorator.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/bridge.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/factory-method.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/abstract-factory.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/fadace.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/proxy.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/adapter.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/mediator.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/state.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/composite.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/command.gif">
+<meta property="og:image" content="http://yoursite.com/posts/2018/design-pattern/visitor.png">
+<meta property="og:updated_time" content="2018-07-27T07:59:28.487Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="design pattern">
+<meta name="twitter:description" content="设计模式原则 依赖倒置原则  高层模块(稳定)不应该依赖低层模块(变化)，二者都应该依赖于抽象(稳定) 抽象(稳定)不应该依赖于实现细节(变化)，实现细节应该依赖于抽象(稳定)   开放封闭原则  对扩展开放，对更改封闭 类模块应该是可扩展的，但是不可修改   单一职责原则  一个类应该仅有一个引起它变化的原因   Liskov替换原则  子类必须能够替换他们的基类   接口隔离原则  针对接口编">
+<meta name="twitter:image" content="http://yoursite.com/posts/2018/design-pattern/template-method.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/posts/2018/design-pattern/"/>
+
+
+
+
+
+  <title>design pattern | chenrui</title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">chenrui</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Less is more.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2018/design-pattern/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rui Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chenrui">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">design pattern</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-27T00:00:00+08:00">
+                2018-07-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="设计模式原则"><a href="#设计模式原则" class="headerlink" title="设计模式原则"></a>设计模式原则</h1><ul>
+<li><p>依赖倒置原则</p>
+<ul>
+<li>高层模块(稳定)不应该依赖低层模块(变化)，二者都应该依赖于抽象(稳定)</li>
+<li>抽象(稳定)不应该依赖于实现细节(变化)，实现细节应该依赖于抽象(稳定)</li>
+</ul>
+</li>
+<li><p>开放封闭原则</p>
+<ul>
+<li>对扩展开放，对更改封闭</li>
+<li>类模块应该是可扩展的，但是不可修改</li>
+</ul>
+</li>
+<li><p>单一职责原则</p>
+<ul>
+<li>一个类应该仅有一个引起它变化的原因</li>
+</ul>
+</li>
+<li><p>Liskov替换原则</p>
+<ul>
+<li>子类必须能够替换他们的基类</li>
+</ul>
+</li>
+<li><p>接口隔离原则</p>
+<ul>
+<li>针对接口编程而不是针对实现编程</li>
+</ul>
+</li>
+<li><p>优先使用对象组合，而不是类继承</p>
+</li>
+<li><p>封装变化点</p>
+</li>
+</ul>
+<h1 id="重构技法"><a href="#重构技法" class="headerlink" title="重构技法"></a>重构技法</h1><ul>
+<li>静态 -&gt; 动态</li>
+<li>早绑定 -&gt; 晚绑定</li>
+<li>继承 -&gt; 组合</li>
+<li>编译时依赖 -&gt; 运行时依赖</li>
+<li>紧耦合 -&gt; 松耦合</li>
+</ul>
+<h1 id="组件协作模式"><a href="#组件协作模式" class="headerlink" title="组件协作模式"></a>组件协作模式</h1><p>软件专业分工之后的第一个结果是“框架与应用程序的划分”，组件协作模式通过晚期绑定，来实现框架与应用程序之间的松耦合，是二者之间协作时常用的模式。</p>
+<h2 id="模板方法模式-template-method"><a href="#模板方法模式-template-method" class="headerlink" title="模板方法模式(template method)"></a>模板方法模式(template method)</h2><ul>
+<li><p>问题<br>  在软件构建过程中，对于某一项任务，它常常有稳定的整体操作结构，但各个子步骤却有很多改变的需求，或者由于固有原因(框架与应用之间的关系)而无法和任务的整体结构同时实现。</p>
+<p>  模板方法提供了一种模式，在确定稳定操作结构的前提下，来灵活应对各个子步骤的变化或者晚期实现需求</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/template-method.png" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="策略模式-strategy"><a href="#策略模式-strategy" class="headerlink" title="策略模式(strategy)"></a>策略模式(strategy)</h2><ul>
+<li><p>问题<br>  在软件构建过程中，某些对象使用的算法可能多种多样经常改变，如果将这些算法都编码到对象中，将会使对象异常复杂，而且有时候支持不使用的算法也是一个性能负担</p>
+<p>  在运行时根据需要透明地更改对象的算法，将算法与对象本身解耦</p>
+</li>
+<li><p>定义<br>  定义一系列算法，把他们一个个封装起来，并且使他们可以相互替换</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/strategy.png" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="观察者模式-observer"><a href="#观察者模式-observer" class="headerlink" title="观察者模式(observer)"></a>观察者模式(observer)</h2><ul>
+<li><p>问题<br>  需要为某些对象建立一种“通知依赖关系”——一个对象(目标对象)的状态发生改变，所有的依赖对象(观察者对象)都将得到通知。如果这样的依赖关系过于紧密，使得软件不能很好的抵御变化</p>
+</li>
+<li><p>定义<br>  定义对象间的一种一对多(变化)的依赖关系，以便当一个对象的状态放生改变时，所有依赖于它的对象都得到通知并自动更新</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/observer.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h1 id="单一职责模式"><a href="#单一职责模式" class="headerlink" title="单一职责模式"></a>单一职责模式</h1><p>在设计中，如果责任划分不清晰，使得继承得到的结果往往是随着需求的变化，子类急剧膨胀，同时充斥着重复代码。这时候的关键是划清责任。</p>
+<h2 id="装饰器模式-decorator"><a href="#装饰器模式-decorator" class="headerlink" title="装饰器模式(decorator)"></a>装饰器模式(decorator)</h2><ul>
+<li><p>问题<br>  使对象的扩展功能能够根据需求来动态的实现，同时避免扩展功能的增多带来的子类膨胀问题。</p>
+</li>
+<li><p>定义<br>  动态(组合)地给一个对象增加一些额外的职责。就增加功能而言，decorator模式比生成子类(继承)更为灵活(消除重复代码&amp;减少子类个数)</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/decorator.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="桥接模式-bridge"><a href="#桥接模式-bridge" class="headerlink" title="桥接模式(bridge)"></a>桥接模式(bridge)</h2><ul>
+<li><p>问题<br>  对象本生具有多维度的变化，如跨平台。但又不能出现类数量爆炸性增长</p>
+</li>
+<li><p>定义<br>  将抽象部分(业务功能)与实现部分(平台实现)分离，使得他们可以独立变化</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/bridge.png" alt="Figure: overview"></p>
+</li>
+<li><p>bridge与strategy</p>
+<p>  桥接模式不仅Implementor具有变化（ConcreteImplementor），而且Abstraction也可以发生变化（RefinedAbstraction），而且两者的变化是完全独立的，RefinedAbstraction与ConcreateImplementor之间松散耦合，它们仅仅通过Abstraction与Implementor之间的关系联系起来。强调Implementor接口仅提供基本操作，而Abstraction则基于这些基本操作定义更高层次的操作。</p>
+</li>
+</ul>
+<h1 id="对象创建模式"><a href="#对象创建模式" class="headerlink" title="对象创建模式"></a>对象创建模式</h1><p>通过”对象创建”模式绕开new，来避免对象创建过程中所导致的紧耦合(依赖具体类)，从而支持对象创建的稳定。</p>
+<h2 id="工厂方法模式-factory-method"><a href="#工厂方法模式-factory-method" class="headerlink" title="工厂方法模式(factory method)"></a>工厂方法模式(factory method)</h2><ul>
+<li><p>问题</p>
+<p>  在系统中，经常面临着创建对象的工作；由于需求的变化，需要创建的对象的具体类型经常变换。通过一种封装机制来避免客户程序和这种具体对象创建工作的紧耦合</p>
+</li>
+<li><p>定义</p>
+<p>  定义一个用于创建对象的接口，让子类决定实例化哪一个类。工厂方法使得一个类的实例化延迟到了子类(目的：解耦，手段：接口/虚函数)</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/factory-method.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="抽象工厂模式-abstract-factory"><a href="#抽象工厂模式-abstract-factory" class="headerlink" title="抽象工厂模式(abstract factory)"></a>抽象工厂模式(abstract factory)</h2><ul>
+<li><p>问题</p>
+<p>  在系统中，经常面临着一系列相互依赖的对象的创建工作，由于需求变化，往往存在更多系列对象的创建工作。通过一种封装机制来避免客户程序和这些具体对象创建工作的紧耦合</p>
+</li>
+<li><p>定义</p>
+<p>  提供一个接口，让该接口负责创建一系列相关或者相互依赖的对象，无需指定他们具体的类</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/abstract-factory.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h1 id="接口隔离模式"><a href="#接口隔离模式" class="headerlink" title="接口隔离模式"></a>接口隔离模式</h1><p>在组件构建过程中，某些接口之间直接的依赖常常带来很多问题甚至根本无法实现。因此添加一层间接(稳定)接口，来隔离本来相互紧密关联的接口。</p>
+<h2 id="外观模式-facade"><a href="#外观模式-facade" class="headerlink" title="外观模式(facade)"></a>外观模式(facade)</h2><ul>
+<li><p>问题</p>
+<p>  简化外部客户程序和系统间的交互接口，将外部程序的演化和内部子系统的变化之间的依赖相互解耦</p>
+</li>
+<li><p>定义</p>
+<p>  为子系统中的一组接口提供一个一致(稳定)的界面，facade模式定义了一个高层接口，这个接口使得这一子系统更加容易使用(服用)</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/fadace.png" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="代理模式-proxy"><a href="#代理模式-proxy" class="headerlink" title="代理模式(proxy)"></a>代理模式(proxy)</h2><ul>
+<li><p>问题</p>
+<p>  在面向对象系统中，有些对象由于某种原因(比如对象创建的开销很大，或者某些操作需要安全控制，或者需要进程外的访问等)，直接访问会给使用者或系统结构带来很多麻烦</p>
+</li>
+<li><p>定义</p>
+<p>  为其他对象提供一种代理以控制(隔离，使用接口)对这个对象的访问</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/proxy.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="适配模式-adapter"><a href="#适配模式-adapter" class="headerlink" title="适配模式(adapter)"></a>适配模式(adapter)</h2><ul>
+<li><p>问题</p>
+<p>  由于应用环境的变化，常常需要将一些现存的对象放在心的环境中，但新环境要求的接口是这些现存对象不满足的。adapter模式用于应对这种迁移的变化</p>
+</li>
+<li><p>定义</p>
+<p>  将一个类的接口转换成客户希望的另一个接口。Adapter模式使得原本由于接口不兼容而不能一起工作的那些类可以一起工作</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/adapter.png" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="中介模式-mediator"><a href="#中介模式-mediator" class="headerlink" title="中介模式(mediator)"></a>中介模式(mediator)</h2><ul>
+<li><p>问题</p>
+<p>  当出现多个对象相互关联交互的情况时，对象之间常常维持一种复杂的应用关系，如果遇到需求的变化，这种直接引用关系将面临不断的变化</p>
+</li>
+<li><p>定义</p>
+<p>  用一个中介对象来封装一系列的对象交互(封装变化)。中介者使各对象不需要显示的相互引用(编译依赖-&gt;运行时依赖)，从而使其耦合松散，而且可以独立地改变它们之间的交互</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/mediator.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h1 id="状态模式"><a href="#状态模式" class="headerlink" title="状态模式"></a>状态模式</h1><p>组件构建过程中，某些对象的状态经常变化，状态模式是为了对这些变化进行管理，同时又维持高层模块的稳定</p>
+<h2 id="状态机模式-state"><a href="#状态机模式-state" class="headerlink" title="状态机模式(state)"></a>状态机模式(state)</h2><ul>
+<li><p>问题</p>
+<p>  某些对象的状态如果改变，其行为也会随之发生变化。但高层模块并不关心具体行为的行为有何不同</p>
+</li>
+<li><p>定义</p>
+<p>  允许一个对象在其内部状态改变时改变它的行为。从而使对象看起来似乎修改了其行为</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/state.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h1 id="数据结构模式"><a href="#数据结构模式" class="headerlink" title="数据结构模式"></a>数据结构模式</h1><p>有一些组件在内部具有特定的数据结构，如果让客户程序依赖这些特定的数据结构，将极大地破坏组件的复用。将这些特定数据结构封装在内部，对外提供统一接口，来实现与特定数据结构无关的访问，是一种有效的解决方案</p>
+<h2 id="组合模式-composite"><a href="#组合模式-composite" class="headerlink" title="组合模式(composite)"></a>组合模式(composite)</h2><ul>
+<li><p>问题</p>
+<p>   客户代码希望忽略组合对象与单个对象的不同</p>
+</li>
+<li><p>定义</p>
+<p>  允许你将对象组合成树形结构来表现”部分-整体“的层次结构，使得客户以一致的方式处理单个对象以及对象的组合</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/composite.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="责任链模式-composite"><a href="#责任链模式-composite" class="headerlink" title="责任链模式(composite)"></a>责任链模式(composite)</h2><ul>
+<li><p>问题</p>
+<p>  一个请求可能被多个对象处理，但是每个请求在运行时只能有一个接受者，如果显示指定，将必不可少地带来请求发送者与接受者的紧耦合</p>
+</li>
+<li><p>定义</p>
+<p>  使多个对象都有机会处理请求，从而避免请求的发送者和接收者之间的耦合关系。将这些对象连成一条链，并沿着这条链传递请求，直到有一个对象处理它为止</p>
+</li>
+</ul>
+<h1 id="行为变化模式"><a href="#行为变化模式" class="headerlink" title="行为变化模式"></a>行为变化模式</h1><p>组件行为的变化经常导致组件本身剧烈的变化。行为变化模式将组件的行为和组件本身进行解耦，从而支持组件行为的变化，实现两者之间的松耦合</p>
+<h2 id="命令模式-command"><a href="#命令模式-command" class="headerlink" title="命令模式(command)"></a>命令模式(command)</h2><ul>
+<li><p>问题</p>
+<p>  命令的请求者与执行者需要解耦，有时还需要对命令进行记录、撤销、事务等处理</p>
+</li>
+<li><p>定义</p>
+<p>  命令的发送者和命令执行者有不同的生命周期。命令发送了并不是立即执行；命令需要进行各种管理逻辑；需要支持撤消\重做操作</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/command.gif" alt="Figure: overview"></p>
+</li>
+</ul>
+<h2 id="访问模式-visitor"><a href="#访问模式-visitor" class="headerlink" title="访问模式(visitor)"></a>访问模式(visitor)</h2><ul>
+<li><p>问题</p>
+<p>  由于需求改变，某些类层次结构中常常需要增加新的方法，如果直接在基类中做这样的更改，将会给子类带来很繁重的变更负担，甚至破坏原有设计</p>
+</li>
+<li><p>结构</p>
+<p>  <img src="/posts/2018/design-pattern/visitor.png" alt="Figure: overview"></p>
+</li>
+</ul>
+<h1 id="对象性能模式"><a href="#对象性能模式" class="headerlink" title="对象性能模式"></a>对象性能模式</h1><p>面向对象很好的解决了“抽象”问题，但是必不可免的付出一定代价，例如对象的增多，内存占用等。在某些情况下需要谨慎处理</p>
+<h2 id="单例模式-singleton"><a href="#单例模式-singleton" class="headerlink" title="单例模式(singleton)"></a>单例模式(singleton)</h2><ul>
+<li><p>问题</p>
+<p>  系统中，经常有这样一些特殊的类，必须保证他们在系统中只存在一个实例才能确保它们的逻辑正确性、以及良好效率。</p>
+</li>
+</ul>
+<h2 id="享元模式-flyweight"><a href="#享元模式-flyweight" class="headerlink" title="享元模式(flyweight)"></a>享元模式(flyweight)</h2><ul>
+<li><p>问题</p>
+<p>  系统采用纯粹对象方案的问题在于大量细粒度的对象会很快充斥在系统中，从而带来很高的运行代价。</p>
+</li>
+<li><p>定义</p>
+<p>  运用共享技术有效地支持大量细粒度的对象</p>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/设计/" rel="tag"># 设计</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2018/k8s-network/" rel="next" title="kubernetes networking">
+                <i class="fa fa-chevron-left"></i> kubernetes networking
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Rui Chen" />
+          <p class="site-author-name" itemprop="name">Rui Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">Less is more.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#设计模式原则"><span class="nav-number">1.</span> <span class="nav-text">设计模式原则</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#重构技法"><span class="nav-number">2.</span> <span class="nav-text">重构技法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#组件协作模式"><span class="nav-number">3.</span> <span class="nav-text">组件协作模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#模板方法模式-template-method"><span class="nav-number">3.1.</span> <span class="nav-text">模板方法模式(template method)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#策略模式-strategy"><span class="nav-number">3.2.</span> <span class="nav-text">策略模式(strategy)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#观察者模式-observer"><span class="nav-number">3.3.</span> <span class="nav-text">观察者模式(observer)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#单一职责模式"><span class="nav-number">4.</span> <span class="nav-text">单一职责模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#装饰器模式-decorator"><span class="nav-number">4.1.</span> <span class="nav-text">装饰器模式(decorator)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#桥接模式-bridge"><span class="nav-number">4.2.</span> <span class="nav-text">桥接模式(bridge)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#对象创建模式"><span class="nav-number">5.</span> <span class="nav-text">对象创建模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#工厂方法模式-factory-method"><span class="nav-number">5.1.</span> <span class="nav-text">工厂方法模式(factory method)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#抽象工厂模式-abstract-factory"><span class="nav-number">5.2.</span> <span class="nav-text">抽象工厂模式(abstract factory)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#接口隔离模式"><span class="nav-number">6.</span> <span class="nav-text">接口隔离模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#外观模式-facade"><span class="nav-number">6.1.</span> <span class="nav-text">外观模式(facade)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代理模式-proxy"><span class="nav-number">6.2.</span> <span class="nav-text">代理模式(proxy)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#适配模式-adapter"><span class="nav-number">6.3.</span> <span class="nav-text">适配模式(adapter)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中介模式-mediator"><span class="nav-number">6.4.</span> <span class="nav-text">中介模式(mediator)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#状态模式"><span class="nav-number">7.</span> <span class="nav-text">状态模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#状态机模式-state"><span class="nav-number">7.1.</span> <span class="nav-text">状态机模式(state)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据结构模式"><span class="nav-number">8.</span> <span class="nav-text">数据结构模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#组合模式-composite"><span class="nav-number">8.1.</span> <span class="nav-text">组合模式(composite)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#责任链模式-composite"><span class="nav-number">8.2.</span> <span class="nav-text">责任链模式(composite)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#行为变化模式"><span class="nav-number">9.</span> <span class="nav-text">行为变化模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#命令模式-command"><span class="nav-number">9.1.</span> <span class="nav-text">命令模式(command)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问模式-visitor"><span class="nav-number">9.2.</span> <span class="nav-text">访问模式(visitor)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#对象性能模式"><span class="nav-number">10.</span> <span class="nav-text">对象性能模式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#单例模式-singleton"><span class="nav-number">10.1.</span> <span class="nav-text">单例模式(singleton)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#享元模式-flyweight"><span class="nav-number">10.2.</span> <span class="nav-text">享元模式(flyweight)</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rui Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

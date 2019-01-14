@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="架构,k8s," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="kubernetes的组件master上的组件 kube-apiserver  组件暴露了Kubernetes的API接口。它是k8s控制平面的前端。它被设计成水平扩展的，也就是可以通过部署多个实例来实现。  etcd  存储所有的集群数据。  kube-scheduler  监控新创建的并且还没有被分配到节点上的pods，为这些pods选择一个节点让他们运行。  调度决策需要考虑的因素包括个人的">
+<meta name="keywords" content="架构,k8s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubernetes overview">
+<meta property="og:url" content="http://yoursite.com/posts/2018/kubernetes-overview/index.html">
+<meta property="og:site_name" content="chenrui">
+<meta property="og:description" content="kubernetes的组件master上的组件 kube-apiserver  组件暴露了Kubernetes的API接口。它是k8s控制平面的前端。它被设计成水平扩展的，也就是可以通过部署多个实例来实现。  etcd  存储所有的集群数据。  kube-scheduler  监控新创建的并且还没有被分配到节点上的pods，为这些pods选择一个节点让他们运行。  调度决策需要考虑的因素包括个人的">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-06-07T01:56:10.483Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kubernetes overview">
+<meta name="twitter:description" content="kubernetes的组件master上的组件 kube-apiserver  组件暴露了Kubernetes的API接口。它是k8s控制平面的前端。它被设计成水平扩展的，也就是可以通过部署多个实例来实现。  etcd  存储所有的集群数据。  kube-scheduler  监控新创建的并且还没有被分配到节点上的pods，为这些pods选择一个节点让他们运行。  调度决策需要考虑的因素包括个人的">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/posts/2018/kubernetes-overview/"/>
+
+
+
+
+
+  <title>kubernetes overview | chenrui</title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">chenrui</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Less is more.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2018/kubernetes-overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rui Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chenrui">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">kubernetes overview</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-06T00:00:00+08:00">
+                2018-06-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="kubernetes的组件"><a href="#kubernetes的组件" class="headerlink" title="kubernetes的组件"></a>kubernetes的组件</h1><h2 id="master上的组件"><a href="#master上的组件" class="headerlink" title="master上的组件"></a>master上的组件</h2><ol>
+<li><p>kube-apiserver</p>
+<p> 组件暴露了Kubernetes的API接口。它是k8s控制平面的前端。它被设计成水平扩展的，也就是可以通过部署多个实例来实现。</p>
+</li>
+<li><p>etcd</p>
+<p> 存储所有的集群数据。</p>
+</li>
+<li><p>kube-scheduler</p>
+<p> 监控新创建的并且还没有被分配到节点上的pods，为这些pods选择一个节点让他们运行。</p>
+<p> 调度决策需要考虑的因素包括个人的和公共的资源需求，硬件/软件/策略约束，数据本地化，工作负载干扰以及运行期限。</p>
+</li>
+<li><p>kube-controller-manager</p>
+<p> 在master上运行的控制器(通过apiserver来监控集群的状态)。逻辑上，每个控制器都是独立的进程，但为了降低复杂度，他们都运行在同一个进程内。这些控制器包括：</p>
+<ul>
+<li>Node Controller: 当节点下线时负责通知并作出响应</li>
+<li>Replication Controller：为系统中的每个复制控制器对象维护正确数量的pods</li>
+<li>Endpoints Controller: 填充endpoints对象(添加services和pods)</li>
+<li>Service Account &amp; Token Controllers: 为新的namespace创建默认账号和API访问token</li>
+</ul>
+</li>
+</ol>
+<h2 id="node上的组件"><a href="#node上的组件" class="headerlink" title="node上的组件"></a>node上的组件</h2><ol>
+<li><p>kubelet</p>
+<p> 在集群的每个节点上运行的代理。它确保容器运行在pod中。</p>
+<p> kubelet通过一套PodSpecs提供多种机制并确保在PodSpecs中的容器正常运行。kubelet不会管理那些不是由k8s创建的容器。</p>
+</li>
+<li><p>kube-proxy</p>
+<p> kube-proxy通过维护主机上的网络规则和执行链接转发使k8s的服务抽象成为可能。</p>
+</li>
+<li><p>container runtime</p>
+<p> 支持Docker，rkt等容器技术。</p>
+</li>
+</ol>
+<h1 id="kubernetes-Master-Node-通信"><a href="#kubernetes-Master-Node-通信" class="headerlink" title="kubernetes Master-Node 通信"></a>kubernetes Master-Node 通信</h1><h2 id="Cluster-gt-Master"><a href="#Cluster-gt-Master" class="headerlink" title="Cluster -&gt; Master"></a>Cluster -&gt; Master</h2><p>从cluster到master的所有通信路径都在apiserver终止(master上的其他组件都没有被暴露远程服务)。apiserver监听远程连接(https:443)并且开启了一种或多种形式的客户端验证。</p>
+<p>节点也应该提供公共根证书，这样他们可以安全的链接到apiserver。</p>
+<p>pods想要链接到apiserver也可以通过服务账号安全的做到，当pod被实例化时，kubernetes会自动把证书和token注入其中。kubernetes服务配置了一个虚拟IP地址，该IP地址被重定向（通过kube-proxy）到apiserver上的HTTPS端点。</p>
+<h2 id="Master-gt-Cluster"><a href="#Master-gt-Cluster" class="headerlink" title="Master -&gt; Cluster"></a>Master -&gt; Cluster</h2><p>从master(apiserver)到cluster主要有两条通信线路。第一种是从apiserver到kubelet，第二种是从apiserver到任意的node、pod或service，通过apiserver的代理功能。</p>
+<ol>
+<li><p>apiserver -&gt; kubelet</p>
+<p> 链接从apiserver到kubelet用于：</p>
+<ul>
+<li>获取pods的日志</li>
+<li>通过kubectl连接正在运行的pods</li>
+<li><p>提供kubelet的端口转发功能</p>
+<p>这些连接最终到达kubelet的HTTPS endpoints。默认情况下，apiserver不会验证kubelet的证书,如果运行在公网上，这可能会受到中间人攻击。</p>
+</li>
+</ul>
+</li>
+<li><p>apiserver -&gt; nodes, pods, services</p>
+<p> 从apiserver到node, pod和service默认是HTTP通信的，因此不需要认证和加密。</p>
+</li>
+</ol>
+<h1 id="kubernetes的对象"><a href="#kubernetes的对象" class="headerlink" title="kubernetes的对象"></a>kubernetes的对象</h1><p>kubernetes的对象在系统中是持久化的实体。系统使用这些实体来展示集群的状态。它可以描述的有：</p>
+<ul>
+<li>哪些集装箱的应用在哪个节点上运行</li>
+<li>应用程序可使用的资源</li>
+<li>应用程序如何运行的策略，例如重启策略，升级和失败容忍</li>
+</ul>
+<p>k8s对象是一个“意图的记录”，一旦创建了对象，系统将不断的工作以确保对象的存在。通过创建对象，有效的告诉了系统集群的理想状态。</p>
+<h2 id="对象说明书和状态"><a href="#对象说明书和状态" class="headerlink" title="对象说明书和状态"></a>对象说明书和状态</h2><p>每个对象包含两个嵌套的对象字段来管理对象的配置：对象说明书和对象状态。你必须提供说明书以描述对象的理想状态-希望对象拥有的特征。状态描述了对象真实的状态。</p>
+<p>例如，Deployment是个可以对象，它可以显示一个应用运行在集群中。当创建一个Deployment，需要设置说明书来指定你想要3个应用副本同时运行。k8s系统读取Deployment说明书并且启动3个实例。如果任意一个实例失败(状态改变)，系统通过进行修正来响应说明书和状态之间的差异，在这个例子中，启动一个replacement实例。</p>
+<h2 id="描述对象"><a href="#描述对象" class="headerlink" title="描述对象"></a>描述对象</h2><p>当使用kubectl创建对象时，需要提供一个.yaml格式的文件用于描述对象信息。必须的字段有：</p>
+<ul>
+<li>apiVersion: 使用哪个API版本来创建对象</li>
+<li>kind: 对象的类型</li>
+<li>metadata: 帮助唯一识别对象的数据，包括name，UID和namespace</li>
+<li>spec: 每个对象有不同的格式，具体参见API文档</li>
+</ul>
+<p>一个Deployment对象的yaml描述：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">nginx-deployment</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">3</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">        image:</span> <span class="attr">nginx:1.7.9</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
+<h1 id="Pods"><a href="#Pods" class="headerlink" title="Pods"></a>Pods</h1><p>Pod是k8s的基本组成部分——创建和部署k8s对象的最小最简单的单元。一个Pod表示集群中运行的一个进程。</p>
+<p>一个Pod封装了一个或多个应用层容器，存储资源，唯一IP地址，以及管理容器如何运行的选项。</p>
+<p>一个Pod代表一个部署单元：一个单独的应用实例，它可能由一个或几个紧密耦合和共享资源的容器组成。</p>
+<p>Docker是Pod中最常见的容器运行环境，但是Pod还支持其他的container runtimes。</p>
+<p>Pods设计成支持多个合作进程(containers)从而形成有凝聚力的服务单元。集群里在相同物理机或虚拟机中的Pod里的容器会自动的共同协作和共同调度。这些容器能共享资源和依赖关系,相互通信，协调何时以及怎样终止他们。</p>
+<h2 id="Pod-Lifecycle"><a href="#Pod-Lifecycle" class="headerlink" title="Pod Lifecycle"></a>Pod Lifecycle</h2><ol>
+<li><p>Pod phase</p>
+<p> pod包含以下几个阶段：</p>
+<ul>
+<li>Pending: Pod已经被系统接收，但容器还没有创建。这包括在调度之前的时间以及下载镜像的时间，这可能需要花一些时间</li>
+<li>Running：Pod已经被分配到了一个节点上，并且所有容器已创建。至少有一个容器在运行或正在启动或重启</li>
+<li>Succeeded：Pod中所有容器已经成功终止并且不再重启</li>
+<li>Failed：所有容器已经终止，并且至少有一个容器是异常终止的</li>
+<li>Unknown：Pod的状态无法获取，通常由于通信问题导致的</li>
+</ul>
+</li>
+<li><p>Pod conditions</p>
+<p> Conditions用于描述Pod更详细的状态:</p>
+<ul>
+<li>PodScheduled: pod正处于调度中，但还没有被分配到具体node上，ip也没有绑定</li>
+<li>Initaized：指定的init container已创建完毕</li>
+<li>Ready：容器创建成功，可提供服务</li>
+<li>Running：所有容器正常运行</li>
+</ul>
+</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/k8s/" rel="tag"># k8s</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2018/amazon-dynamo/" rel="next" title="amazon dynamo system architecture">
+                <i class="fa fa-chevron-left"></i> amazon dynamo system architecture
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2018/k8s-network/" rel="prev" title="kubernetes networking">
+                kubernetes networking <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Rui Chen" />
+          <p class="site-author-name" itemprop="name">Rui Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">Less is more.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#kubernetes的组件"><span class="nav-number">1.</span> <span class="nav-text">kubernetes的组件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#master上的组件"><span class="nav-number">1.1.</span> <span class="nav-text">master上的组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#node上的组件"><span class="nav-number">1.2.</span> <span class="nav-text">node上的组件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#kubernetes-Master-Node-通信"><span class="nav-number">2.</span> <span class="nav-text">kubernetes Master-Node 通信</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster-gt-Master"><span class="nav-number">2.1.</span> <span class="nav-text">Cluster -&gt; Master</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-gt-Cluster"><span class="nav-number">2.2.</span> <span class="nav-text">Master -&gt; Cluster</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#kubernetes的对象"><span class="nav-number">3.</span> <span class="nav-text">kubernetes的对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对象说明书和状态"><span class="nav-number">3.1.</span> <span class="nav-text">对象说明书和状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#描述对象"><span class="nav-number">3.2.</span> <span class="nav-text">描述对象</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pods"><span class="nav-number">4.</span> <span class="nav-text">Pods</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Pod-Lifecycle"><span class="nav-number">4.1.</span> <span class="nav-text">Pod Lifecycle</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rui Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

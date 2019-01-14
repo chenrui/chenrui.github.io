@@ -1,0 +1,11 @@
+# Generated files
+source/knowledge
+
+# Hexo files
+.DS_Store
+Thumbs.db
+db.json
+*.log
+node_modules/
+public/
+.deploy*/

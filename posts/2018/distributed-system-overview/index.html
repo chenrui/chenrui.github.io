@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="架构,分布式,微服务," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="一致性问题一致性问题是许多分布式系统的核心。我们希望分布式系统的可靠性和性能, 而不必处理分配所带来的后果 (例如, 节点之间的分歧), 解决一致性问题, 就可以解决几个相关的更高级的问题, 如原子广播和原子提交。 影响分布式系统设计选择的两个不可能结果(FLP和CAP):  FLP不可能结果   FLP论证了在一个异步的分布式系统中，即是只是容忍一个进程的错误，也不存在一个一致性算法可以保证正确">
+<meta name="keywords" content="架构,分布式,微服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Distributed system">
+<meta property="og:url" content="http://yoursite.com/posts/2018/distributed-system-overview/index.html">
+<meta property="og:site_name" content="chenrui">
+<meta property="og:description" content="一致性问题一致性问题是许多分布式系统的核心。我们希望分布式系统的可靠性和性能, 而不必处理分配所带来的后果 (例如, 节点之间的分歧), 解决一致性问题, 就可以解决几个相关的更高级的问题, 如原子广播和原子提交。 影响分布式系统设计选择的两个不可能结果(FLP和CAP):  FLP不可能结果   FLP论证了在一个异步的分布式系统中，即是只是容忍一个进程的错误，也不存在一个一致性算法可以保证正确">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/posts/2018/distributed-system-overview/cap.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/distributed-system-overview/replication-both.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/distributed-system-overview/vector_clock.png">
+<meta property="og:updated_time" content="2018-05-02T07:06:23.347Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Distributed system">
+<meta name="twitter:description" content="一致性问题一致性问题是许多分布式系统的核心。我们希望分布式系统的可靠性和性能, 而不必处理分配所带来的后果 (例如, 节点之间的分歧), 解决一致性问题, 就可以解决几个相关的更高级的问题, 如原子广播和原子提交。 影响分布式系统设计选择的两个不可能结果(FLP和CAP):  FLP不可能结果   FLP论证了在一个异步的分布式系统中，即是只是容忍一个进程的错误，也不存在一个一致性算法可以保证正确">
+<meta name="twitter:image" content="http://yoursite.com/posts/2018/distributed-system-overview/cap.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/posts/2018/distributed-system-overview/"/>
+
+
+
+
+
+  <title>Distributed system | chenrui</title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">chenrui</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Less is more.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2018/distributed-system-overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rui Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chenrui">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Distributed system</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-27T00:00:00+08:00">
+                2018-04-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="一致性问题"><a href="#一致性问题" class="headerlink" title="一致性问题"></a>一致性问题</h1><p>一致性问题是许多分布式系统的核心。我们希望分布式系统的可靠性和性能, 而不必处理分配所带来的后果 (例如, 节点之间的分歧), 解决一致性问题, 就可以解决几个相关的更高级的问题, 如原子广播和原子提交。</p>
+<p>影响分布式系统设计选择的两个不可能结果(FLP和CAP):</p>
+<ul>
+<li><p>FLP不可能结果</p>
+<p>  FLP论证了在一个异步的分布式系统中，即是只是容忍一个进程的错误，也不存在一个一致性算法可以保证正确性。这个结论听起来很可怕，连一个进程的错误都无法容忍，更何况通常对于多个进程的分布式系统，只是容忍一个进程的错误是不够的，然而实际上它只是论证了最坏的情况。首先它的前提是建立在一个完全异步的不可靠环境假设下，实际上可以让系统稍微“可靠”一些，其次，它只是论证了即使仅仅要容忍一个进程的错误，一致性算法都存在着永远不结束的可能。</p>
+<p>  这种不可能的结果很重要, 因为它强调了假设异步系统模型导致权衡：当消息传递的边界不能保证时，处理一致性问题的算法必须放弃安全或活跃度。</p>
+</li>
+<li><p>CAP原理</p>
+<ul>
+<li>一致性(Consistency)：所有节点在同一时间看到相同数据。</li>
+<li>可用性(Availability)：节点故障不能影响继续运行。</li>
+<li><p>分区容忍(Partition tolerance)：消息因为网络或节点故障丢失时系统继续运行。</p>
+<p>同时满足所有属性的系统是不可能实现的，最多同时满足两个:</p>
+<p><img src="/posts/2018/distributed-system-overview/cap.png" alt="Figure: overview"></p>
+</li>
+<li><p>CA(一致性+可用性)。需要非常严格的全体一致的协议，比如“两阶段提交”（2PC）。CA系统不允许网络错误或节点错误来保证一致性，一旦出现这样的问题，系统将自己变为只读状态确保可用性，但会拒绝所有新的写请求。</p>
+</li>
+<li>CP(一致性+分区容忍)。关注的是系统里大多数人的一致性协议，比如Paxos 算法。系统只需要保证大多数结点数据一致，少数节点在数据不同步时把自己的状态设为不可用。</li>
+<li><p>AP(可用性+分区容忍)。允许数据存在多个副本，在不能达成一致时给出数据冲突，因此需要维护数据版本。</p>
+<p>当存在分区时，强一致性保证就要求我们放弃高可用。这是因为当两个分区间不能通信而继续在他们上面接收写操作时，不能避免副本间的差异。</p>
+<p>强一致性要求在执行每一个操作时都需要所有节点通信并达成一致。这导致高延时且影响性能。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>一致性模型：</p>
+<ul>
+<li><p>强一致性模型(维护单个副本)</p>
+<ul>
+<li>线性一致性: 所有的操作必须在一个全局实时系统中原子执行。</li>
+<li>顺序一致性: 所有的操作在各自节点上以某种顺序原子执行。</li>
+</ul>
+</li>
+<li><p>弱一致性模型</p>
+<ul>
+<li>以客户端为中心的一致性：涉及客户端或会话概念的一致性。比如，客户端为中心一致性保证客户端永远不会看到旧数据。这通常是通过增加缓存来实现的，这样当客户端访问到包含旧数据的副本节点时，返回的是缓存数据而非副本节点上的数据。</li>
+<li>因果一致性</li>
+<li>最终一致性: 如果停止修改值，经过一段时间后，所有副本会在相同的值上达成一致。这意味着在这段时间内副本间是不一致的。</li>
+</ul>
+</li>
+</ul>
+<h1 id="时钟和顺序问题"><a href="#时钟和顺序问题" class="headerlink" title="时钟和顺序问题"></a>时钟和顺序问题</h1><ul>
+<li><p>全局时钟假设所有时间在所有分布式节点中完美同步。这样可以使用时间戳来确定全局时序。但可能变成一个潜在异常的来源:比如用户意外的改变了某节点的时间，或者一个过时的机器加入集群，或者时间同步的平率不一致，都会导致难以追踪的异常。</p>
+</li>
+<li><p>本地时钟假设每个节点都有自己的时钟。意味着你不能使用本地时钟来定义一个远端的时间戳是否发生在一个本地时间戳之前还是之后，也就是说，不能把来自不同节点的时间戳作比较。</p>
+</li>
+<li><p>无时钟只有逻辑时间的概念。我们不使用时钟, 而是以其他方式跟踪因果关系。时间戳只是在一个点上状态的简写，所以我们可以使用计数器和通信来定义某件事是否发生在另一件事之前、之后或同时发生。</p>
+</li>
+</ul>
+<p>时钟同步由网络延时和物理距离等因素影响，即使在多个节点间同步一个j简单的整数计数器也是一个挑战。虽然时间和顺序经常一起被讨论，但时间本身并不是很有用的属性。算法并不真正关心时间，而更多的是抽象的属性：1. 事件的因果顺讯；2. 故障检测(消息传递的上界值)；3. 一致的快照(在某个时间点系统的状态)。</p>
+<p>时间/顺序/同步是否真的需要？这需要看情况。在某些用例中, 我们希望每个中间操作都要把系统从一个一致状态移动到另一个一致状态。例如, 在许多情况下, 我们希望数据库中的响应表示所有可用的信息, 我们希望避免处理系统返回不一致结果时可能发生的问题。</p>
+<p>但在其他情况下，我们不需要那么多的时间/顺序/同步。例如，一个长时间运行的计算并且在结束前不真正关心系统所做的操作，那么只要保证答案正确就不需要太多的同步。</p>
+<h1 id="强一致性的复制问题"><a href="#强一致性的复制问题" class="headerlink" title="强一致性的复制问题"></a>强一致性的复制问题</h1><p>假设我们有一些初始数据库, 并且客户端发出请求以更改数据库的状态。可以分为以下几个阶段：</p>
+<ol>
+<li>请求。 客户端向服务端发送请求</li>
+<li>同步。发生同步复制</li>
+<li>响应。返回结果给客户端</li>
+<li>异步。发生异步复制</li>
+</ol>
+<p><img src="/posts/2018/distributed-system-overview/replication-both.png" alt="Figure: overview"></p>
+<p>复制的基本方法分为同步和异步。从技术上分为单拷贝系统(防止分歧)和多主系统(有分歧风险)。</p>
+<p>单拷贝系统的目的是“行为更像单系统”。当部分错误发生时，系统保证仅只有一份拷贝是有效的。而且系统保证复制总是一致的。主要的复制算法有：</p>
+<ul>
+<li><p>主从复制(Master/Slave or Primary/Backup)</p>
+<p>  所有的更新操作都在主上进行，操作日志(或变更日志)通过网络发送到备份副本上。这里有两个方法：同步复制和异步复制。同步复制要求两条消息(“update” + “acknowledge receipt”)，异步复制只需要一条update消息。</p>
+<p>  任何异步复制算法都只能提供弱持久性保证。像Mysql的复制延迟：备份节点总是至少落后主节点一次数据更新。如果主节点出错，那些还没有发送到备份节点的更新操作会丢失。</p>
+<p>  同步复制保证在返回客户端前，写操作已存储到备份节点中——以等待其他副本响应为代价。即使这样也只能提供弱保证：当主节点收到写请求并发送给从节点，从节点处理后并返回ACK，此时主节点在收到ACK前失败。如果出现这样的情况，只能手动的进行处理。</p>
+<p>  为了防止这种异常情况，我们需要添加另外的消息，例如两阶段提交协议(2PC).</p>
+</li>
+<li><p>两阶段提交(2PC)</p>
+<p>  两阶段提交的消息流如下所示：</p>
+  <figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[ Coordinator ]</span> -&gt; OK to commit?     <span class="string">[ Peers ]</span></span><br><span class="line">                &lt;- Yes / No</span><br><span class="line"><span class="string">[ Coordinator ]</span> -&gt; Commit / Rollback <span class="string">[ Peers ]</span></span><br><span class="line">                &lt;- ACK</span><br></pre></td></tr></table></figure>
+<p>  第一阶段，协调者发送更新操作给所有的参与者。每个参与者执行更新并投票是否提交或终止。当投票提交，参与者要在临时区存储更新(预写记录)。在第二阶段完成前，更新被认为是临时的。</p>
+<p>  第二阶段，协调者决定结果并通知每一个参与者。如果所有参与者都投票提交，更新被永久保存。</p>
+</li>
+<li><p>分区容忍算法</p>
+<p>  网络分区是因为节点间因为网络问题而无法连接，但节点本身是活跃的，他们甚至可以收到客户端的请求。因此网络分区可能导致系统被分割为两个同时活动的分区。</p>
+<ul>
+<li><p>多数决定</p>
+<p>  要求大多数节点，而不是全部节点(与2PC不同)投票同意更新。只要(N/2 + 1)个节点是正常的，那么系统就是可用的。当网络分区发生时，一个分区会包含大部分节点，而那些少数分区将停止处理写操作以防止分歧。</p>
+</li>
+<li><p>角色</p>
+<p>  每个节点有不同的角色。比如在Paxos算法中，有一个领导节点负责协调操作，其他节点负责接收。</p>
+</li>
+<li><p>Epochs</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="弱一致性算法"><a href="#弱一致性算法" class="headerlink" title="弱一致性算法"></a>弱一致性算法</h1><p>弱一致性算法允许副本间彼此存在分歧。这意味着没有严格定义的通信模式: 复制副本可以彼此分离, 但仍可继续使用并接受写入。例如这样的场景：</p>
+<p>副本可能位于不同的数据中心中, 并且由于某种原因无法进行通信。每个副本在分区期间保持可用, 同时接受来自某组客户端的读取和写入。<br><figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[Clients]</span>   - &gt; <span class="string">[A]</span></span><br><span class="line"></span><br><span class="line">--- Partition ---</span><br><span class="line"></span><br><span class="line"><span class="string">[Clients]</span>   - &gt; <span class="string">[B]</span></span><br><span class="line"></span><br><span class="line">--- Partition ---</span><br><span class="line"></span><br><span class="line"><span class="string">[Clients]</span>   - &gt; <span class="string">[C]</span></span><br></pre></td></tr></table></figure></p>
+<p>一段时间后, 分区会愈合, 副本服务器开始交换信息。他们从不同的客户端收到了不同的更新, 彼此有分歧, 所以需要进行某种和解。我们希望发生的是, 所有的副本聚合到相同的结果。<br><figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[A]</span> \</span><br><span class="line">    --&gt; <span class="string">[merge]</span></span><br><span class="line"><span class="string">[B]</span> /     |</span><br><span class="line">          |</span><br><span class="line"><span class="string">[C]</span> ----<span class="string">[merge]</span>---&gt; result</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p>冲突检测和读取修复</p>
+<p>  许复制副本发散的系统必须有一种最终调和两个不同值的方法。一般的方法有</p>
+<ul>
+<li>最后一个编写器获胜。如果两个编写者同时写入, 则只保留最慢的作者的值。</li>
+<li>时间戳。名义上, 具有较大时间戳值的值获胜。但是, 如果时间不同步, 可能会发生许多奇怪的事情, 例如旧数据会覆盖较新的值。</li>
+<li>版本号。版本号可能会避免与使用时间戳相关的一些问题。请注意, 当有多个版本存在时，可以准确跟踪因果关系的最小机制是向量时钟, 而不是版本号。</li>
+<li><p>向量时钟。如图：</p>
+<p>  <img src="/posts/2018/distributed-system-overview/vector_clock.png" alt="Figure: overview"></p>
+<p>读取值时, 客户端会联系N节点的R , 并向它们询问键的最新值。它接收所有的响应, 丢弃严格较旧的值 (使用向量时钟值来检测此)。如果只有一个唯一的向量时钟 + 值对, 它将返回。如果有多个矢量时钟 + 值对被同时编辑 (例如不可比较), 则返回所有这些值。</p>
+<p>从上面可以看出, 读取修复可能返回多个值。这意味着, 客户端/应用程序开发人员必须偶尔处理这些情况, 方法是根据某些用例特定条件选择一个值。</p>
+</li>
+</ul>
+</li>
+<li><p>同步复制</p>
+<p>  由于对节点故障和网络分区具有容错性，当更换或部分恢复故障节点时，需要一种方法来处理在分区后重新加入群集的节点。</p>
+<p>  复制副本同步用于在发生故障后使节点更新, 并定期同步复制副本。</p>
+<p>  Gossip是同步复制副本的一种概率技术。通信模式 (例如, 哪个节点联系哪个节点) 未事先确定。相反，节点有一定几率(p)尝试与其他节点同步。每隔t秒，每个节点选择另一个节点进行通信。</p>
+</li>
+</ul>
+<p>一致性保证薄弱的系统的另一种情况是一组客户端以某种顺序将消息发送到两个副本。因为没有强制执行单个总订单的协调协议, 所以消息可以以不同的顺序在两个副本中传递，即无序编程。</p>
+<p>CRDT(convergent replicated datatypes)是一种数据结构, 用于提供始终收敛的数据类型, 只要它们看到相同的操作集 (按任意顺序)。</p>
+<blockquote>
+<p>资料</p>
+<ul>
+<li><a href="http://book.mixu.net/distsys/single-page.html" target="_blank" rel="noopener">分布式系统概览</a></li>
+<li><a href="http://www.bailis.org/blog/safety-and-liveness-eventual-consistency-is-not-safe/" target="_blank" rel="noopener">最终一致性模型数据的安全性和活跃性</a></li>
+<li><a href="http://hal.archives-ouvertes.fr/docs/00/39/79/81/PDF/RR-6956.pdf" target="_blank" rel="noopener">CRDTs</a></li>
+</ul>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/分布式/" rel="tag"># 分布式</a>
+          
+            <a href="/tags/微服务/" rel="tag"># 微服务</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2018/microservice-overview/" rel="next" title="microservices">
+                <i class="fa fa-chevron-left"></i> microservices
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2018/amazon-dynamo/" rel="prev" title="amazon dynamo system architecture">
+                amazon dynamo system architecture <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Rui Chen" />
+          <p class="site-author-name" itemprop="name">Rui Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">Less is more.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一致性问题"><span class="nav-number">1.</span> <span class="nav-text">一致性问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#时钟和顺序问题"><span class="nav-number">2.</span> <span class="nav-text">时钟和顺序问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#强一致性的复制问题"><span class="nav-number">3.</span> <span class="nav-text">强一致性的复制问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#弱一致性算法"><span class="nav-number">4.</span> <span class="nav-text">弱一致性算法</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rui Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

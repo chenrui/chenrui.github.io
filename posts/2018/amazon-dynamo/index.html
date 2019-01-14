@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="架构,分布式," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="http://docs.basho.com/riak/kv/2.2.3/learn/dynamo/  一个需要在生产环境中操作的存储系统的架构是非常复杂的。再加上数据持久化组件，系统需要具备扩展性和健壮性的负载均衡解决方案：成员和故障检测，故障恢复，同步复制，过载处理，状态转换，并发性和作业调度，请求编组，请求路由，系统监控和告警，配置管理。这里我们主要讨论Dynamo系统中核心的分布式技术：分">
+<meta name="keywords" content="架构,分布式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="amazon dynamo system architecture">
+<meta property="og:url" content="http://yoursite.com/posts/2018/amazon-dynamo/index.html">
+<meta property="og:site_name" content="chenrui">
+<meta property="og:description" content="http://docs.basho.com/riak/kv/2.2.3/learn/dynamo/  一个需要在生产环境中操作的存储系统的架构是非常复杂的。再加上数据持久化组件，系统需要具备扩展性和健壮性的负载均衡解决方案：成员和故障检测，故障恢复，同步复制，过载处理，状态转换，并发性和作业调度，请求编组，请求路由，系统监控和告警，配置管理。这里我们主要讨论Dynamo系统中核心的分布式技术：分">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/posts/2018/amazon-dynamo/riak-ring.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/amazon-dynamo/replication.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/amazon-dynamo/reconfliction.png">
+<meta property="og:updated_time" content="2018-05-21T09:24:01.525Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="amazon dynamo system architecture">
+<meta name="twitter:description" content="http://docs.basho.com/riak/kv/2.2.3/learn/dynamo/  一个需要在生产环境中操作的存储系统的架构是非常复杂的。再加上数据持久化组件，系统需要具备扩展性和健壮性的负载均衡解决方案：成员和故障检测，故障恢复，同步复制，过载处理，状态转换，并发性和作业调度，请求编组，请求路由，系统监控和告警，配置管理。这里我们主要讨论Dynamo系统中核心的分布式技术：分">
+<meta name="twitter:image" content="http://yoursite.com/posts/2018/amazon-dynamo/riak-ring.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/posts/2018/amazon-dynamo/"/>
+
+
+
+
+
+  <title>amazon dynamo system architecture | chenrui</title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">chenrui</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Less is more.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2018/amazon-dynamo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rui Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chenrui">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">amazon dynamo system architecture</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-21T00:00:00+08:00">
+                2018-05-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p><a href="http://docs.basho.com/riak/kv/2.2.3/learn/dynamo/" target="_blank" rel="noopener">http://docs.basho.com/riak/kv/2.2.3/learn/dynamo/</a></p>
+</blockquote>
+<p>一个需要在生产环境中操作的存储系统的架构是非常复杂的。再加上数据持久化组件，系统需要具备扩展性和健壮性的负载均衡解决方案：成员和故障检测，故障恢复，同步复制，过载处理，状态转换，并发性和作业调度，请求编组，请求路由，系统监控和告警，配置管理。这里我们主要讨论Dynamo系统中核心的分布式技术：分区、复制、版本控制、成员、错误处理和扩展。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">问题</th>
+<th style="text-align:center">使用技术</th>
+<th style="text-align:center">好处</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">分区</td>
+<td style="text-align:center">一致性hash</td>
+<td style="text-align:center">增加扩展性</td>
+</tr>
+<tr>
+<td style="text-align:left">写操作高可用</td>
+<td style="text-align:center">在读时使用向量时钟解决冲突</td>
+<td style="text-align:center">版本大小与更新速率解耦</td>
+</tr>
+<tr>
+<td style="text-align:left">解决临时错误</td>
+<td style="text-align:center">仲裁和隐士切换</td>
+<td style="text-align:center">当一些副本不可用时提供高可用和耐用性保证</td>
+</tr>
+<tr>
+<td style="text-align:left">从永久性故障中恢复</td>
+<td style="text-align:center">Merkle trees</td>
+<td style="text-align:center">在后台同步有分歧的副本</td>
+</tr>
+<tr>
+<td style="text-align:left">成员和故障检测</td>
+<td style="text-align:center">Gossip 协议</td>
+<td style="text-align:center">保持对称，避免集中式存储成员和节点活跃度信息</td>
+</tr>
+</tbody>
+</table>
+<h2 id="系统接口"><a href="#系统接口" class="headerlink" title="系统接口"></a>系统接口</h2><p>Dynamo通过get()和put()来获取和存储对象。get(key)操作通过key来定位对象副本并且返回一个对象或者一个包含冲突版本和上下文的对象列表。put(key, context, object)操作通过key决定哪里的副本来存放对象，并且写入硬盘。上下文编码关于对象的系统元数据，这对调用者是透明的，并且会包含一些其他信息，比如对象的版本。上下文信息与对象一起存储以便于系统验证put请求中提供的上下文对象的有效性。</p>
+<h2 id="分区算法"><a href="#分区算法" class="headerlink" title="分区算法"></a>分区算法</h2><p>Dynamo最关键的设计要求是它必须是可扩展的。这需要一种机制来动态的把数据划分到节点集上。Dynamo的分区方案依赖于一致hash算法， 以便在多个存储主机之间分配负载。在一致hash中, 哈希函数的输出范围被视为一个固定循环空间。系统中的每个节点都在这个空间内分配一个随机值, 代表它在环上的位置。每个数据项通过对数据项的key进行hash来标识，以确定在环上的位置并分配给节点，然后顺时针旋转以查找大于该数据项位置的第一个节点。这样每个节点只负责它自己和它的前置节点之间环的区域。</p>
+<p>一致哈希的原理优势是节点的增减只影响临近节点，而其他节点则不受影响。</p>
+<p>基本一致哈希算法有一些挑战。首先，在环上每个节点的随机的位置分配导致不均匀的数据和负载。其次，算法没有注意到节点性能的差异。为了解决这些问题，Dynamo修改了基本算法：不是把一个节点映射到环上的一个点，而是把每个节点分配到多个点。为达到这个目的，Dynamo使用了虚拟节点的概念。一个虚拟节点看起来像系统中的单个节点，但每个节点可以负责多个虚拟节点。当系统增加一个新的节点，它会被分配到环上的多个点上。</p>
+<p><img src="/posts/2018/amazon-dynamo/riak-ring.png" alt="Figure: overview"></p>
+<h2 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h2><p>为了高可用，每个数据项都会被复制到N个主机。假设key哈希后落在如下图环中的位置，那么由节点B存储数据项。如果副本个数N设置为3，从节点B开始，顺时针找出2个(N-1)节点C、D，将数据项复制到节点上。</p>
+<p><img src="/posts/2018/amazon-dynamo/replication.png" alt="Figure: overview"></p>
+<h2 id="数据版本控制"><a href="#数据版本控制" class="headerlink" title="数据版本控制"></a>数据版本控制</h2><p>Dynamo提供最终一致性，允许将更新异步传送到所有副本。put()调用可能在更新操作被所有副本应用前返回，这导致随后的get()调用不是获取的最新数据。</p>
+<p>为了提供可用性和分区容忍，Dynamo将每次修改的结果视为一个新的不可变的数据版本。它允许系统中出现数据的多个版本。大多数情况，新版本包含了之前的版本，系统自己可以决定权威的版本(语法合并)。但是当出现故常时，可能存在版本分支，导致对象合并冲突。这种情况下，系统不能合并对象的多个版本，必须由客户端来解决冲突(语义合并)。</p>
+<p>Dynamo使用向量时钟，为了捕获同一对象的不同版本之间的因果关系。向量时钟实际上是一个(节点，计数器)队列表。向量时钟与每个对象的每个版本相关联。如果第一个对象的时钟计数器小于等于所有节点上第二个对象的时钟计数器，那么表示第一个是第二个的祖先可以被丢弃。否则，两个版本被认为是有冲突的需要和解。</p>
+<p>合并操作示意图：</p>
+<p><img src="/posts/2018/amazon-dynamo/reconfliction.png" alt="Figure: overview"></p>
+<ol>
+<li>客户端在节点Sx上写入新对象D1，向量时钟为[Sx, 1]</li>
+<li>此时客户端需要更新对象，假设在同一个节点上更新，那么向量时钟为D2[Sx, 2]。D2从D1下降，因此D1被覆盖，但是在其他节点上可能任然会有D1的副本。</li>
+<li>假设在不同的节点Sy, Sz上同时更新了D2对象。此时系统中出现D3向量时钟为([Sx,2], [Sy,1])和D4向量时钟为([Sx,2], [Sz,1])两个版本的数据。</li>
+<li>D3和D4之间没有因果关系，因此系统无法合并。这是需要交给客户端进行语义合并。新数据D5的向量时钟为([Sx,3], [Sy,1], [Sz,1])</li>
+</ol>
+<h2 id="GET和PUT"><a href="#GET和PUT" class="headerlink" title="GET和PUT"></a>GET和PUT</h2><p>Dynamon中的每个节点都可以处理客户端的get和put的任何key。有两种策略可以选择节点：1. 通过负载信息路由请求；2. 通过分区路由请求。</p>
+<p>处理读写请求的节点被称为协调员，特别是优先列表中的前N个节点。如果请求通过负载均衡，那么请求可能被路由到环上的任意节点。那些不是优先列表中的节点收到请求后不会执行读写，而是转发请求到前N个节点。如果节点故障或不能访问，那么在列表中排名靠后的节点将被访问。</p>
+<p>为了保持副本的一致性，Dynamo使用类似仲裁系统的一致性协议。这个协议有两个可配置值：R和W。R表示必须参与成功的读操作的最小节点个数。W表示必须参与成功写操作的最小节点个数。设置R+W&gt;N产生一个类似选举的系统。这种情况下，读(写)的延迟依赖于那个最慢的读(写)副本。为了提供更好的延迟性，R+W通常设置为小于N。</p>
+<p>在接收到一个put请求后，协调员生成一个向量时钟并写入新版本。协调员把新版本发送给排名最高的可访问的N个节点。如果有W-1个节点返回响应那么写入成功。</p>
+<p>收到get请求，协调员从排名最高的可访问的N个节点中获取数据的所有版本，并且等待R个节点的响应。如果协调员最终收集到多个版本的数据，它将返回所有版本不相关。有分歧的版本被合并，并取代当前的版本被回写。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/分布式/" rel="tag"># 分布式</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2018/distributed-system-overview/" rel="next" title="Distributed system">
+                <i class="fa fa-chevron-left"></i> Distributed system
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2018/kubernetes-overview/" rel="prev" title="kubernetes overview">
+                kubernetes overview <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Rui Chen" />
+          <p class="site-author-name" itemprop="name">Rui Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">Less is more.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统接口"><span class="nav-number">1.</span> <span class="nav-text">系统接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分区算法"><span class="nav-number">2.</span> <span class="nav-text">分区算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#复制"><span class="nav-number">3.</span> <span class="nav-text">复制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据版本控制"><span class="nav-number">4.</span> <span class="nav-text">数据版本控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GET和PUT"><span class="nav-number">5.</span> <span class="nav-text">GET和PUT</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rui Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
