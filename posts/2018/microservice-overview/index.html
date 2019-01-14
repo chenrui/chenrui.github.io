@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="架构,微服务,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="翻译 https://martinfowler.com/articles/microservices.html  微服务概念”Microservices(微服务)“ - 是众多软件架构中的一个概念。尽管我们倾向于忽略这件事，但这些软件系统的概念描述还是让我们越来越感兴趣。我们已经看到最近这几年许多软件工程使用了这种模式，并且到目前结果邻人满意，正因为如此它已成为建立企业级应用的默认模式。不幸的是">
+<meta name="keywords" content="架构,微服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="microservices">
+<meta property="og:url" content="http://yoursite.com/posts/2018/microservice-overview/index.html">
+<meta property="og:site_name" content="chenrui">
+<meta property="og:description" content="翻译 https://martinfowler.com/articles/microservices.html  微服务概念”Microservices(微服务)“ - 是众多软件架构中的一个概念。尽管我们倾向于忽略这件事，但这些软件系统的概念描述还是让我们越来越感兴趣。我们已经看到最近这几年许多软件工程使用了这种模式，并且到目前结果邻人满意，正因为如此它已成为建立企业级应用的默认模式。不幸的是">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/posts/2018/microservice-overview/microservice-1.png">
+<meta property="og:updated_time" content="2019-01-14T06:14:39.733Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="microservices">
+<meta name="twitter:description" content="翻译 https://martinfowler.com/articles/microservices.html  微服务概念”Microservices(微服务)“ - 是众多软件架构中的一个概念。尽管我们倾向于忽略这件事，但这些软件系统的概念描述还是让我们越来越感兴趣。我们已经看到最近这几年许多软件工程使用了这种模式，并且到目前结果邻人满意，正因为如此它已成为建立企业级应用的默认模式。不幸的是">
+<meta name="twitter:image" content="http://yoursite.com/posts/2018/microservice-overview/microservice-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/posts/2018/microservice-overview/">
+
+
+
+
+
+  <title>microservices | chenrui</title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">chenrui</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Less is more.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2018/microservice-overview/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rui Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chenrui">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">microservices</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-10T00:00:00+08:00">
+                2018-04-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>翻译 <a href="https://martinfowler.com/articles/microservices.html" target="_blank" rel="noopener">https://martinfowler.com/articles/microservices.html</a></p>
+</blockquote>
+<h1 id="微服务概念"><a href="#微服务概念" class="headerlink" title="微服务概念"></a>微服务概念</h1><p>”Microservices(微服务)“ - 是众多软件架构中的一个概念。尽管我们倾向于忽略这件事，但这些软件系统的概念描述还是让我们越来越感兴趣。我们已经看到最近这几年许多软件工程使用了这种模式，并且到目前结果邻人满意，正因为如此它已成为建立企业级应用的默认模式。不幸的是，现在还没有很多的关于microservice的概念以及应该怎样去实现。</p>
+<p>简单的说，Microservices架构是一种把单体应用开发为一套小型服务的方法，每个服务运行在自己独立的进程中并用轻量级的机制进行通信，通常是HTTP API。这些服务围绕着业务能力来建立并且可以通过自动化部署工具进行独立部署。这里极少限度的对这些服务进行集中式管理，并且服务可能使用的是不同的编程语言或者不同的数据存储技术。</p>
+<p>在开始解释Microservices前有必要与单体应用服务进行比较：单体应用建立成一个单元，企业级应用一般包括三部分：客户端用户界面(由运行在用户HTML页面和JS组成，并运行在用户端的浏览器上)，数据库，以及服务端应用。服务端应用接收HTTP请求并执行业务逻辑，从数据库获取和更新数据，选择和填充HTML页面并发送到客户端浏览器。服务端应用是一个庞大单一的逻辑执行程序，在系统中任何的改变都会触发编译和发布一个新的版本。</p>
+<p>建立一个系统最自然的方式就是像这样拥有一个庞大的服务。所有处理请求的逻辑都运行在单个进程，允许你使用编程语言基本特性将应用分割成类、方法和名字空间。你可以通过负载均衡手段运行多个实例来横向扩展这个庞大的服务。</p>
+<p>单体应用是非常成功的，但越来越多的人感觉受到挫折——特别是越来越多的应用发布在了云端。更改周期被绑在了一起——应用中任何小的改变，都要求整个庞大的系统重新编译和发布。长此以往很难保持好的模块化，也不利于扩展。</p>
+<p>这些挫折导致出现了微服务架构：用多套服务构建应用。服务之间是独立可扩展的，每个服务规定了固定的模块边界，甚至允许不同的服务使用不同的编程语言，他们也可以由不同的团队来管理。</p>
+<p>我们没有说过Microservices是革命性的，它的设计原理根源是从Unix而来。我们认为很少有人能够深入理解微服务架构并且软件工程师能够很好的使用它。</p>
+<h1 id="微服务特性"><a href="#微服务特性" class="headerlink" title="微服务特性"></a>微服务特性</h1><p>虽然没有正式的定义Microservices，但是我们可以尝试描述什么样的常用的架构特征适合这个标签。像这些常用的特征大纲，不是所有微服务架构都包含了所有的特征，但是我们真的希望更多的微服务架构展示出更多的特征。</p>
+<h2 id="1-组件化的服务"><a href="#1-组件化的服务" class="headerlink" title="1. 组件化的服务"></a>1. 组件化的服务</h2><p>在我们进入软件行业这么长的时间里，有一种渴望是用插件化的组建来建立系统，就像我们看到的真实世界一样。在最近的这20年中，我们看到了重大进展，大量常用的软件库成为许多语言平台的一部分。</p>
+<p>当谈论组件时我们陷入了如何定义组件构成的困境中。我们是这样定义的：组件是一个软件单元可以独立的升级或替换。</p>
+<p>微服务架构使用软件库，但是组件化我们软件的主要方式是分解服务。我们定义软件库，是被链接到工程中并在内存中直接调用其函数，但服务是进程外的组建，它通过某种机制，如web请求或远程调用进行通信。</p>
+<p>使用服务而不是软件库作为服务的一个最主要原因是服务是独立部署的。如果你的应用在一个进程中由许多软件库构成，任何一个组件的变化都会导致整个应用重新部署。但是如果应用已经分解成多个服务，只需要将有变化的服务重新发布。这也不是绝对的，一些改变会涉及到对外接口的变化，但是好的微服务架构始终致力于最小化改变通过紧密结合的服务边界和通信机制。</p>
+<p>另一个使用服务作为组件的原因是有更多的明确的服务接口。大部分语言没有好的机制定义明确的公共接口。通常阻止客户端破坏组件的封装，导致组件之间过度耦合。服务通过明确的远程调用机制很容易的避免这个问题。使用服务也有一些缺点:远程调用比进程内调用消耗更大。</p>
+<h2 id="2-围绕业务能力"><a href="#2-围绕业务能力" class="headerlink" title="2. 围绕业务能力"></a>2. 围绕业务能力</h2><p>当拆分一个大的应用时，管理者通常关注的是技术层面，分为UI部门、服务端部门和数据部门。当一个团队被这样拆分，即使简单的修改都会导致跨部门，增加沟通成本。聪明的团队会优化这种模式，他们仅仅关注业务逻辑在哪个应用中。</p>
+<p>微服务的划分则不同，它是围绕业务能力来的。这样的服务重叠的实现了业务，包括用户接口，持久化存储和其他外部协作。所以整个团队是跨职能的，需要开发人员有全面的技能：用户体验、数据存储和项目管理。</p>
+<h2 id="3-产品而非项目"><a href="#3-产品而非项目" class="headerlink" title="3. 产品而非项目"></a>3. 产品而非项目</h2><p>我们看到众多的应用开发努力使用项目模式：以交出一部分认为是完成了的软件为目的。软件开发完成后交给运维部门，项目组也就解散了。</p>
+<p>微服务支持者希望避免这种模式，而用“团队拥有产品的整个生命周期”这种概念来代替。这个灵感来自于亚马逊提出的“你建立，你运行”的概念，开发团队对产品负责。这样带来的结果使开发人员注意到软件在产品中行为并且增加与用户的联系。</p>
+<p>似乎没有理由单体应用不能达到相同的效果，但是更小力度的服务可以更容易的增进开发者与用户的关系。</p>
+<h2 id="4-智能端点-endpoint-和哑管道"><a href="#4-智能端点-endpoint-和哑管道" class="headerlink" title="4. 智能端点(endpoint)和哑管道"></a>4. 智能端点(endpoint)和哑管道</h2><p>在建立不同进程之间的通信结构时, 我们看到了许多产品和方法, 它们强调通信机制本身需要智能化。这方面的一个很好的例子是企业服务总线 (ESB), 其中 ESB 通常是一个包含消息路由，编排、转换和应用业务规则的复杂设施。</p>
+<p>微服务倾向于一种替代方法:智能端点和哑管道。以微服务建立的应用想要竟可能的解耦而又紧密联系——他们有自己的业务逻辑并且表现得像Unix系统中的过滤器——接收请求，执行逻辑，产生响应。服务间使用简单的RESTish协议而不是其他复杂的协议。</p>
+<p>最常用的两种协议是 HTTP API和轻量级消息(RabbitMQ或ZeroMQ)。</p>
+<p>在单体应用中，组件在进程中并且通过方法调用和函数调用进行通信。把一个单体应用变成微服务最大的问题在于改变通信模式。把内存中的方法调用变成RPC调用会导致冗余的通信而消耗性能。相反需要用粗粒度的通信替换细粒度通信。</p>
+<h2 id="5-分权治理"><a href="#5-分权治理" class="headerlink" title="5. 分权治理"></a>5. 分权治理</h2><p>集中化管理的后果是在单一平台上的标准化。但经验表明，这种方法是有限的——不是每个问题都是一个钉子而每个解决方法都是一个锤子。我们更喜欢用正确的工具来完成任务，但在集中式的应用中使用不同的编程语言，这并不常见。</p>
+<p>与其在纸上定义标准，建立微服务的团队更喜欢开发有用的工具，其他开发者也可以用它解决相同的问题。这些工具通常从现实中收获并且和其他团队共享。</p>
+<h2 id="6-分散的数据管理"><a href="#6-分散的数据管理" class="headerlink" title="6. 分散的数据管理"></a>6. 分散的数据管理</h2><p>数据管理权利下放以多种不同方式呈现。在最抽象层面上，意味着系统之间的概念模型是不同的。这是大型企业常见的问题：销售视图与技术支持视图不同，销售视图中被称为客户的东西根本不可能出现在技术支持视图中。还有一些属性表示不同的语义。</p>
+<p>这个问题在应用之间是很常见的，但也肯能发生在内部应用中，特别是应用被划分为单独的组件时。一种有用的方法是边界上下文的领域驱动设计(Domain Driven Design)概念。DDD将一个复杂的领域划分为多个有界的上下文，并映射出他们的关系。这样服务之间也加强了间隔。</p>
+<p>微服务还分散了数据存储决策。集中式应用使用一个单一的数据库来持久化数据，但微服务喜欢让每个服务管理自己的数据库，或者同一个存储技术的多个实例，或者不同的存储系统。</p>
+<p><img src="/posts/2018/microservice-overview/microservice-1.png" alt="Figure: overview"></p>
+<p>分散管理需要对跨服务的数据更新的影响负责。处理更新的常用方法是使用事物来保证更新多个资源时的一致性。</p>
+<p>使用事物有助于保持一致性，但会导致大量的时间耦合，这在多个服务间是有问题的。分布式事物是很难实现的，因此微服务架构强调服务间的少事务协调，明确认为最终一致性通过补偿操作来处理。</p>
+<p>选择这种方式管理不一致性对许多开发团队是一个挑战，但它常常与业务实践相匹配。通常业务处理某种程度的不一致是为了快速响应需求，同时有一些可逆流程来处理错误。只要修复错误的成本低于为保持一致性带来的业务损失就值得权衡。</p>
+<h2 id="7-故障设计"><a href="#7-故障设计" class="headerlink" title="7. 故障设计"></a>7. 故障设计</h2><p>使用服务作为组件的结果是应用需要设计容错机制以便忍受服务失败。任何服务调用都可能失败，客户端必须竟可能优雅的响应此问题。与集中式应用相比这是个缺点，因为它增加了复杂性。</p>
+<p>由于服务可能在任何时候失败，因此很重要的一点是能够快速检测故障并在可能的情况下自动恢复。微服务应用非常重视对系统的实时监控，监控指标可以提供一个错误预警系统，触发开发团队跟进和调查。</p>
+<blockquote>
+<p>资料</p>
+<ul>
+<li>领域驱动设计：<a href="https://www.oschina.net/news/18245/what-is-domain-driven-design" target="_blank" rel="noopener">https://www.oschina.net/news/18245/what-is-domain-driven-design</a></li>
+<li><a href="https://martinfowler.com/eaaDev/EventCollaboration.html" target="_blank" rel="noopener">https://martinfowler.com/eaaDev/EventCollaboration.html</a></li>
+</ul>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/微服务/" rel="tag"># 微服务</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2018/distributed-system-overview/" rel="prev" title="Distributed system">
+                Distributed system <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="Rui Chen">
+          <p class="site-author-name" itemprop="name">Rui Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">Less is more.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#微服务概念"><span class="nav-number">1.</span> <span class="nav-text">微服务概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#微服务特性"><span class="nav-number">2.</span> <span class="nav-text">微服务特性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-组件化的服务"><span class="nav-number">2.1.</span> <span class="nav-text">1. 组件化的服务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-围绕业务能力"><span class="nav-number">2.2.</span> <span class="nav-text">2. 围绕业务能力</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-产品而非项目"><span class="nav-number">2.3.</span> <span class="nav-text">3. 产品而非项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-智能端点-endpoint-和哑管道"><span class="nav-number">2.4.</span> <span class="nav-text">4. 智能端点(endpoint)和哑管道</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-分权治理"><span class="nav-number">2.5.</span> <span class="nav-text">5. 分权治理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-分散的数据管理"><span class="nav-number">2.6.</span> <span class="nav-text">6. 分散的数据管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-故障设计"><span class="nav-number">2.7.</span> <span class="nav-text">7. 故障设计</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rui Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

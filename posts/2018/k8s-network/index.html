@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
+
+
+  <meta name="keywords" content="架构,k8s,">
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2">
+
+
+
+
+
+
+<meta name="description" content="PodPods是kubernetes中最基本的单元。它是由一个或多个容器组成，并且共享网络堆栈和其他资源比如磁盘。“共享网络堆栈”是什么？实际上它表示pod中所有的容器可以用localhost相互访问。如果一个容器运行nginx并且监听80端口，另外一个容器运行scrapyd它可以使用http://localhost:80 来访问第一个容器。但是它是如何工作的？来看一个典型例子:  从上往下我们有">
+<meta name="keywords" content="架构,k8s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubernetes networking">
+<meta property="og:url" content="http://yoursite.com/posts/2018/k8s-network/index.html">
+<meta property="og:site_name" content="chenrui">
+<meta property="og:description" content="PodPods是kubernetes中最基本的单元。它是由一个或多个容器组成，并且共享网络堆栈和其他资源比如磁盘。“共享网络堆栈”是什么？实际上它表示pod中所有的容器可以用localhost相互访问。如果一个容器运行nginx并且监听80端口，另外一个容器运行scrapyd它可以使用http://localhost:80 来访问第一个容器。但是它是如何工作的？来看一个典型例子:  从上往下我们有">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/posts/2018/k8s-network/container1.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/k8s-network/container2.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/k8s-network/container3.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/k8s-network/container4.png">
+<meta property="og:image" content="http://yoursite.com/posts/2018/k8s-network/pod-network.png">
+<meta property="og:updated_time" content="2019-01-14T06:14:39.691Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kubernetes networking">
+<meta name="twitter:description" content="PodPods是kubernetes中最基本的单元。它是由一个或多个容器组成，并且共享网络堆栈和其他资源比如磁盘。“共享网络堆栈”是什么？实际上它表示pod中所有的容器可以用localhost相互访问。如果一个容器运行nginx并且监听80端口，另外一个容器运行scrapyd它可以使用http://localhost:80 来访问第一个容器。但是它是如何工作的？来看一个典型例子:  从上往下我们有">
+<meta name="twitter:image" content="http://yoursite.com/posts/2018/k8s-network/container1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/posts/2018/k8s-network/">
+
+
+
+
+
+  <title>kubernetes networking | chenrui</title><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">chenrui</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Less is more.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2018/k8s-network/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rui Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chenrui">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">kubernetes networking</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-25T00:00:00+08:00">
+                2018-06-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Pod"><a href="#Pod" class="headerlink" title="Pod"></a>Pod</h1><p>Pods是kubernetes中最基本的单元。它是由一个或多个容器组成，并且共享网络堆栈和其他资源比如磁盘。“共享网络堆栈”是什么？实际上它表示pod中所有的容器可以用localhost相互访问。如果一个容器运行nginx并且监听80端口，另外一个容器运行scrapyd它可以使用<a href="http://localhost:80" target="_blank" rel="noopener">http://localhost:80</a> 来访问第一个容器。但是它是如何工作的？来看一个典型例子:</p>
+<p><img src="/posts/2018/k8s-network/container1.png" alt="Figure: overview"></p>
+<p>从上往下我们有一个物理网络接口eth0。链接eth0的是一个网桥docker0，虚拟网络接口veth0链接在网桥docker0上。docker0和veth0在相同的网段(172.17.0.0/24)。docker0是veth0的默认网关。容器运行时只能看见veth0并且通过docker0和eth0与外面通信。现在运行第二个容器：</p>
+<p><img src="/posts/2018/k8s-network/container2.png" alt="Figure: overview"></p>
+<p>第二个容器获得一个新的虚拟网络接口veth1，链接到相同的网桥docker0。这个接口分配的IP地址为172.17.0.3。两个容器可以通过docker0相互通信。</p>
+<p>在kubernetes Pod中，容器之间为了共享网络堆栈，docker在启动容器时并不会创建一个新的虚拟接口，而是共享一个存在的接口：</p>
+<p><img src="/posts/2018/k8s-network/container3.png" alt="Figure: overview"></p>
+<p>现在第二个容器看见的是veth0而不是veth1。外部通过172.17.0.2寻址这两个容器，内部则通过端口找到具体是哪一个容器。这意味着两个容器不能打开相同的端口。这一套流程可以充分利用解耦和容器隔离，同时又可以让容器间的协作在最简单的网络环境中进行。</p>
+<p>Kubernetes实现这种模式是通过为每个Pod创建一个特殊的容器，唯一的目的就是为其他容器提供网络接口。当Pod被调度后，在Node上使用docker ps命令，你会发现至少会有一个”pause”的容器。这个容器除了sleep不做任何事情直到收到SIGTERM信号而退出。尽管这个”pause”容器不活跃，但它是Pod的核心用来提供虚拟网络接口，所有其他容器用它来相互通信并且链接外部网络：</p>
+<p><img src="/posts/2018/k8s-network/container4.png" alt="Figure: overview"></p>
+<h1 id="The-Pods-Network"><a href="#The-Pods-Network" class="headerlink" title="The Pods Network"></a>The Pods Network</h1><p>Kubernetes集群可以由多个节点组成，为了让不同节点上的Pod能相互通信，系统提供了两种方法：1. 分配一个全局的地址空间，每个节点上的网桥地址都属于这个空间并且是唯一的。2. 在网关上添加路由表，指定数据包如何被路由。虚拟网络接口、网桥、路由规则的组合被称为overlay network。</p>
+<p><img src="/posts/2018/k8s-network/pod-network.png" alt="Figure: overview"></p>
+<p>通常我们不需要手动添加路由表。当pod与另一个pod要通信时常常通过抽象的service来进行。</p>
+<h1 id="services"><a href="#services" class="headerlink" title="services"></a>services</h1><p>Pod networking是很优雅的，但是它自己不足以创造一个稳定的系统。这是因为系统中pods的生命周期是短暂的。你可以使用pod的IP作为endpoint，但是当pod被重新创建时不能保证IP不会变化。</p>
+<p>你可能意识到这是一个老问题，其标准的解决方案是：使用反向代理/负载均衡。客户端连接代理服务器，代理负责维护后端服务器健康状态并转发请求。这要求代理服务器是持久稳定的，并且必须有一个后端服务器列表，以及需要知道后端服务器的健康状态。Kubernetes中为满足这三个要求，定义了service的概念。</p>
+<p>为了说明service是如何实现pod的负载均衡，我们使用deployment创建两个nginx的pods并暴露80端口</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">nginx-deployment</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">2</span> <span class="comment"># tells deployment to run 2 pods matching the template</span></span><br><span class="line"><span class="attr">  template:</span> <span class="comment"># create pods using pod definition in this template</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line">      <span class="comment"># unlike pod-nginx.yaml, the name is not included in the meta data as a unique name is</span></span><br><span class="line">      <span class="comment"># generated from the deployment name</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">        image:</span> <span class="attr">nginx:latest</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> kubectl apply -f deployment.yaml </span><br><span class="line">deployment.apps "nginx-deployment" created</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> kubectl get pods -o wide</span><br><span class="line">NAME                                READY     STATUS    RESTARTS   AGE       IP           NODE</span><br><span class="line">nginx-deployment-64ff85b579-cpftn   1/1       Running   0          2h        10.244.2.9   192.168.118.218</span><br><span class="line">nginx-deployment-64ff85b579-rbbmd   1/1       Running   0          2h        10.244.2.8   192.168.118.218</span><br></pre></td></tr></table></figure>
+<p>通过在其他节点增加路由表，我们就可以访问到这两个pod。但是如果pod被重启或调度到其他节点，IP会发生变化导致客户端连接中断。为了避免这种情况我们创建一个service。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">my-service</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">  ports:</span></span><br><span class="line"><span class="attr">  - protocol:</span> <span class="string">TCP</span></span><br><span class="line"><span class="attr">    port:</span> <span class="number">8080</span>          <span class="comment"># service</span></span><br><span class="line"><span class="attr">    targetPort:</span> <span class="number">80</span>      <span class="comment"># pod</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">清除iptables规则</span><br><span class="line"><span class="meta">#</span> iptables -P INPUT ACCEPT</span><br><span class="line"><span class="meta">#</span> iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta">#</span> iptables -F</span><br><span class="line"><span class="meta">#</span> iptables -L -n</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> kubectl describe service</span><br><span class="line"></span><br><span class="line">Name:              my-service</span><br><span class="line">Namespace:         default</span><br><span class="line">Labels:            &lt;none&gt;</span><br><span class="line">Annotations:       kubectl.kubernetes.io/last-applied-configuration=&#123;"apiVersion":"v1","kind":"Service","metadata":&#123;"annotations":&#123;&#125;,"name":"my-service","namespace":"default"&#125;,"spec":&#123;"ports":[&#123;"port":8080,"protocol":"T...</span><br><span class="line">Selector:          app=nginx</span><br><span class="line">Type:              ClusterIP</span><br><span class="line">IP:                10.105.214.79</span><br><span class="line">Port:              &lt;unset&gt;  8080/TCP</span><br><span class="line">TargetPort:        80/TCP</span><br><span class="line">Endpoints:         10.244.2.12:80,10.244.2.13:80</span><br><span class="line">Session Affinity:  None</span><br><span class="line">Events:            &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="Service-Networking"><a href="#Service-Networking" class="headerlink" title="Service Networking"></a>Service Networking</h2><p>每一个类型为ClusterIP的service都会被分配一个IP。它是servcie的默认类型，任何在集群中的pod都可以访问到。</p>
+<p>像pod network一样service network也是虚拟的，但与pod不同的是：使用ifconfig命令查看，pod的ip地址是配置在实际的网卡上，而service的ip地址是完全虚拟的，它是路由规则配置而来。 kube-proxy的作用主要就是负责service的实现，具体来说，就是实现了内部从pod到service和外部的从node port向service的访问。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> iptables -S -t nat</span><br><span class="line">-A KUBE-SEP-32JLQPNPQ4QBMKXF -s 10.244.2.13/32 -m comment --comment "default/my-service:" -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SEP-32JLQPNPQ4QBMKXF -p tcp -m comment --comment "default/my-service:" -m tcp -j DNAT --to-destination 10.244.2.13:80</span><br><span class="line">-A KUBE-SEP-JP7GPWZSV5GSOB6Q -s 10.244.2.12/32 -m comment --comment "default/my-service:" -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SEP-JP7GPWZSV5GSOB6Q -p tcp -m comment --comment "default/my-service:" -m tcp -j DNAT --to-destination 10.244.2.12:80</span><br><span class="line">-A KUBE-SERVICES ! -s 10.244.0.0/16 -d 10.106.86.116/32 -p tcp -m comment --comment "default/my-service: cluster IP" -m tcp --dport 8080 -j KUBE-MARK-MASQ</span><br><span class="line">-A KUBE-SERVICES -d 10.106.86.116/32 -p tcp -m comment --comment "default/my-service: cluster IP" -m tcp --dport 8080 -j KUBE-SVC-KEAUNL7HVWWSEZA6</span><br><span class="line">-A KUBE-SERVICES -m comment --comment "kubernetes service nodeports; NOTE: this must be the last rule in this chain" -m addrtype --dst-type LOCAL -j KUBE-NODEPORTS</span><br><span class="line">-A KUBE-SVC-KEAUNL7HVWWSEZA6 -m comment --comment "default/my-service:" -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-JP7GPWZSV5GSOB6Q</span><br><span class="line">-A KUBE-SVC-KEAUNL7HVWWSEZA6 -m comment --comment "default/my-service:" -j KUBE-SEP-32JLQPNPQ4QBMKXF</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+            <a href="/tags/k8s/" rel="tag"># k8s</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2018/kubernetes-overview/" rel="next" title="kubernetes overview">
+                <i class="fa fa-chevron-left"></i> kubernetes overview
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2019/design-pattern/index/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image" src="/images/avatar.gif" alt="Rui Chen">
+          <p class="site-author-name" itemprop="name">Rui Chen</p>
+           
+              <p class="site-description motion-element" itemprop="description">Less is more.</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Pod"><span class="nav-number">1.</span> <span class="nav-text">Pod</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#The-Pods-Network"><span class="nav-number">2.</span> <span class="nav-text">The Pods Network</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#services"><span class="nav-number">3.</span> <span class="nav-text">services</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Service-Networking"><span class="nav-number">3.1.</span> <span class="nav-text">Service Networking</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rui Chen</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
