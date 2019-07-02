@@ -263,6 +263,270 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2019/amazon-adfs-cognito/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rui Chen">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="chenrui">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/posts/2019/amazon-adfs-cognito/" itemprop="url">使用企业AD接入Amazon服务</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-30T00:00:00+08:00">
+                2019-06-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>使用Microsoft AD 目录，通过AWS Cognito认证接入Web Service的认证流程如下图所示，我们的安装步骤将按照这个顺序依次进行：</p>
+<p><img src="/posts/2019/amazon-adfs-cognito/mainDiagram.png" alt="Figure: overview"></p>
+<h1 id="Install-amp-amp-Config"><a href="#Install-amp-amp-Config" class="headerlink" title="Install &amp;&amp; Config"></a>Install &amp;&amp; Config</h1><h2 id="1-安装AD和ADFS"><a href="#1-安装AD和ADFS" class="headerlink" title="1. 安装AD和ADFS"></a>1. 安装AD和ADFS</h2><p>在AWS EC2中启动Windows_Server-2012-R2实例。之后使用远程桌面登录该实例并安装AD/ADFS服务。</p>
+<p>详细安装过程请参考<a href="https://www.youtube.com/watch?v=yagCgNvl3vs" target="_blank" rel="noopener">视屏</a></p>
+<h2 id="2-创建Amazon-Cognito-User-Pool"><a href="#2-创建Amazon-Cognito-User-Pool" class="headerlink" title="2. 创建Amazon Cognito User Pool"></a>2. 创建Amazon Cognito User Pool</h2><ol>
+<li><p>登录 <a href="https://console.aws.amazon.com/cognito/home" target="_blank" rel="noopener">Amazon Cognito console</a></p>
+</li>
+<li><p>选择创建User Pool，出入pool名字(ad-test)，点击逐步介绍设置</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-1.png" alt="Figure: overview"></p>
+</li>
+<li><p>属性</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-2.png" alt="Figure: overview"></p>
+</li>
+<li><p>策略</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-3.png" alt="Figure: overview"></p>
+</li>
+<li><p>设备</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-4.png" alt="Figure: overview"></p>
+</li>
+<li><p>添加应用客户端</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-5.png" alt="Figure: overview"></p>
+</li>
+<li><p>审核并创建Pool</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-6.png" alt="Figure: overview"></p>
+</li>
+</ol>
+<ol start="8">
+<li><p>在<em>应用程序继承-&gt;域名</em> 设置Cognito域名</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-9.png" alt="Figure: overview"></p>
+</li>
+</ol>
+<h2 id="3-配置ADFS并导出SAML文件"><a href="#3-配置ADFS并导出SAML文件" class="headerlink" title="3. 配置ADFS并导出SAML文件"></a>3. 配置ADFS并导出SAML文件</h2><ol>
+<li><p>启动Relying Party Trusts向导</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/adfs-1.png" alt="Figure: overview"></p>
+</li>
+<li><p>配置Relying Party Trusts</p>
+<ul>
+<li><p><img src="/posts/2019/amazon-adfs-cognito/adfs-2.png" alt="Figure: overview"></p>
+</li>
+<li><p><em>Select Data Source</em> 选择 <em>Enter data about the relying party manually</em></p>
+</li>
+<li><p><em>Specify Dsplay Name</em> 输入名字，这里我们输入<strong>adfs</strong></p>
+</li>
+<li><p>跳过证书设置</p>
+</li>
+<li><p><em>Confgiure URL</em> 选择 <em>Enable support for the SAML 2.0 WebSSO protocol</em>, 并绑定Cognito user Pool的终端节点URL，即<a href="https://procept-omegaaibi3.auth.us-west-2.amazoncognito.com/saml2/idpresponse。" target="_blank" rel="noopener">https://procept-omegaaibi3.auth.us-west-2.amazoncognito.com/saml2/idpresponse。</a>(User Pool的域名已在步骤<strong>2-9</strong>中设置)</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/adfs-3.png" alt="Figure: overview"></p>
+</li>
+<li><p><em>Configure Identifiers</em> 添加Cognito user pool URN，即urn:amazon:cognito:sp:us-west-2_GKNVdphre。(User pool ID为us-west-2_GKNVdphre，可在User pool常规设置中查看)</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/adfs-4.png" alt="Figure: overview"></p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/adfs-5.png" alt="Figure: overview"></p>
+</li>
+<li><p><em>Choose Access Control Policy</em> 选择 <em>Permit everyone</em></p>
+</li>
+<li><p>Finish configure</p>
+</li>
+</ul>
+</li>
+<li><p>Edit Claim Issuance Policy</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/adfs-6.png" alt="Figure: overview"></p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/adfs-7.png" alt="Figure: overview"></p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/adfs-8.png" alt="Figure: overview"></p>
+</li>
+<li><p>在浏览器中输入<a href="https://localhost/FederationMetadata/2007-06/FederationMetadata.xml，保存文件为saml.xml" target="_blank" rel="noopener">https://localhost/FederationMetadata/2007-06/FederationMetadata.xml，保存文件为saml.xml</a></p>
+</li>
+</ol>
+<h2 id="4-在Amazon-Cognito-User-Pool中导入saml文件"><a href="#4-在Amazon-Cognito-User-Pool中导入saml文件" class="headerlink" title="4. 在Amazon Cognito User Pool中导入saml文件"></a>4. 在Amazon Cognito User Pool中导入saml文件</h2><ol>
+<li><p>在<em>联合身份验证-&gt;身份提供商</em>中上传adfs.xml</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/user-pool-7.png" alt="Figure: overview"></p>
+</li>
+<li><p>在<em>联合身份验证-&gt;属性映射</em> 添加</p>
+<ul>
+<li>SAML属性: <a href="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress" target="_blank" rel="noopener">http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress</a></li>
+<li><p>User Pool 属性: email</p>
+<p><img src="/posts/2019/amazon-adfs-cognito/user-pool-8.png" alt="Figure: overview"></p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="5-部署web-app"><a href="#5-部署web-app" class="headerlink" title="5. 部署web app"></a>5. 部署web app</h2><ol>
+<li><p>下载测试需要使用的APP项目: </p>
+ <figure class="highlight crmsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="keyword">clone</span> <span class="title">git</span>@github.com:leodrak/ADFSCognito.git</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用prerequisites.yaml模板在AWS CloudFormation中创建Stack，等待实例创建完成</p>
+<ul>
+<li><p>将模板中nodejs6.10改为nodejs8.10</p>
+</li>
+<li><p>创建堆栈，设置BucketName为datamanager-adfssso-test</p>
+</li>
+<li><p>查看输出</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/deploy-1.png" alt="Figure: overview"></p>
+</li>
+</ul>
+</li>
+</ol>
+<ol start="3">
+<li><p>进入API Gateway配置页面</p>
+<ul>
+<li><p>添加授权方，将之前创建的Cognito User Pool于Gateway关联</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/deploy-2.png" alt="Figure: overview"></p>
+</li>
+<li><p>配置API接口的认证方式</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/deploy-3.png" alt="Figure: overview"></p>
+</li>
+</ul>
+</li>
+<li><p>更新Cognito(ad-test)的配置</p>
+<ul>
+<li><p>在回调URL项中填入CloudfrontEndpoint的URL地址</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/deploy-5.png" alt="Figure: overview"></p>
+</li>
+</ul>
+</li>
+<li><p>更新客户端App配置并上传到s3</p>
+<ul>
+<li><p>vim ADFSCognito/DataManager/js/config.js</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/deploy-6.png" alt="Figure: overview"></p>
+</li>
+<li><p>上传文件到S3的datamanager-adfssso-test中</p>
+<p>  <img src="/posts/2019/amazon-adfs-cognito/deploy-7.png" alt="Figure: overview"></p>
+</li>
+</ul>
+</li>
+</ol>
+<h2 id="6-测试"><a href="#6-测试" class="headerlink" title="6. 测试"></a>6. 测试</h2><ol>
+<li><p>在活动目录中新增测试用户(user: <a href="mailto:t1@procept.omega" target="_blank" rel="noopener">t1@procept.omega</a>, pwd: test1234)</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/test-1.png" alt="Figure: overview"></p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/test-2.png" alt="Figure: overview"></p>
+</li>
+<li><p>在DynamoDB的ADFSSecretData表中插入数据</p>
+<p> <img src="/posts/2019/amazon-adfs-cognito/test-3.png" alt="Figure: overview"></p>
+</li>
+<li><p>修改ListSecretData的lambda函数，cognito将ADFS返回的认证信息存入headers.Authorization中，所以需要在lambda函数中解析。</p>
+ <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> AWS = <span class="built_in">require</span>(<span class="string">'aws-sdk'</span>);</span><br><span class="line"><span class="keyword">const</span> ddb = <span class="keyword">new</span> AWS.DynamoDB.DocumentClient();</span><br><span class="line">exports.handler = <span class="function">(<span class="params">event, context, callback</span>) =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Received event: '</span>, event);</span><br><span class="line">    <span class="keyword">var</span> adfsResponse = event.headers.Authorization.split(<span class="string">'.'</span>)[<span class="number">1</span>];</span><br><span class="line">    <span class="keyword">var</span> adfsResponseDecoded = <span class="keyword">new</span> Buffer(adfsResponse, <span class="string">'base64'</span>).toString(<span class="string">"ascii"</span>);</span><br><span class="line">    <span class="keyword">var</span> adfsData = <span class="built_in">JSON</span>.parse(adfsResponseDecoded);</span><br><span class="line"></span><br><span class="line">    listSecrets(adfsData.email).then(<span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// You can use the callback function to provide a return value from your Node.js</span></span><br><span class="line">        <span class="comment">// Lambda functions. The first parameter is used for failed invocations. The</span></span><br><span class="line">        <span class="comment">// second parameter specifies the result data of the invocation.</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Because this Lambda function is called by an API Gateway proxy integration</span></span><br><span class="line">        <span class="comment">// the result object must use the following structure.</span></span><br><span class="line">        callback(<span class="literal">null</span>, &#123;</span><br><span class="line">            statusCode: <span class="number">200</span>,</span><br><span class="line">            body: <span class="built_in">JSON</span>.stringify(data.Items),</span><br><span class="line">            headers: &#123;</span><br><span class="line">                <span class="string">'Access-Control-Allow-Origin'</span>: <span class="string">'*'</span>,</span><br><span class="line">            &#125;,</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;).catch(<span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.error(err);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// If there is an error during processing, catch it and return</span></span><br><span class="line">        <span class="comment">// from the Lambda function successfully. Specify a 500 HTTP status</span></span><br><span class="line">        <span class="comment">// code and provide an error message in the body. This will provide a</span></span><br><span class="line">        <span class="comment">// more meaningful error response to the end client.</span></span><br><span class="line">        errorResponse(err.message, context.awsRequestId, callback)</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">listSecrets</span>(<span class="params">username</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ddb.scan(&#123;</span><br><span class="line">        ExpressionAttributeValues: &#123;</span><br><span class="line">            <span class="string">":u"</span>: username</span><br><span class="line">        &#125;,</span><br><span class="line">        FilterExpression: <span class="string">'email = :u'</span>,</span><br><span class="line">        TableName: <span class="string">'ADFSSecretData'</span>,</span><br><span class="line">    &#125;).promise();</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">errorResponse</span>(<span class="params">errorMessage, awsRequestId, callback</span>) </span>&#123;</span><br><span class="line">  callback(<span class="literal">null</span>, &#123;</span><br><span class="line">    statusCode: <span class="number">500</span>,</span><br><span class="line">    body: <span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">      <span class="built_in">Error</span>: errorMessage,</span><br><span class="line">      Reference: awsRequestId,</span><br><span class="line">    &#125;),</span><br><span class="line">    headers: &#123;</span><br><span class="line">      <span class="string">'Access-Control-Allow-Origin'</span>: <span class="string">'*'</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用AD上的用户，通过Cognito验证后登录后端App，完成测试</p>
+<ul>
+<li><p>访问<a href="https://d2d65txfu5q0vq.cloudfront.net" target="_blank" rel="noopener">https://d2d65txfu5q0vq.cloudfront.net</a>, 将自动重定向到cognito，之后通过ADFS进行用户身份认证</p>
+<p><img src="/posts/2019/amazon-adfs-cognito/test-4.png" alt="Figure: overview"></p>
+<p><img src="/posts/2019/amazon-adfs-cognito/test-5.png" alt="Figure: overview"></p>
+<p><img src="/posts/2019/amazon-adfs-cognito/test-6.png" alt="Figure: overview"></p>
+</li>
+</ul>
+</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/posts/2018/k8s-network/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
@@ -945,7 +1209,7 @@
 </li>
 <li><p>两阶段提交(2PC)</p>
 <p>  两阶段提交的消息流如下所示：</p>
-  <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[</span> <span class="string">Coordinator</span> <span class="string">]</span> <span class="bullet">-&gt;</span> <span class="string">OK</span> <span class="string">to</span> <span class="string">commit?</span>     <span class="string">[</span> <span class="string">Peers</span> <span class="string">]</span></span><br><span class="line">                <span class="string">&lt;-</span> <span class="literal">Yes</span> <span class="string">/</span> <span class="literal">No</span></span><br><span class="line"><span class="string">[</span> <span class="string">Coordinator</span> <span class="string">]</span> <span class="bullet">-&gt;</span> <span class="string">Commit</span> <span class="string">/</span> <span class="string">Rollback</span> <span class="string">[</span> <span class="string">Peers</span> <span class="string">]</span></span><br><span class="line">                <span class="string">&lt;-</span> <span class="string">ACK</span></span><br></pre></td></tr></table></figure>
+  <figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[ Coordinator ]</span> -&gt; OK to commit?     <span class="string">[ Peers ]</span></span><br><span class="line">                &lt;- Yes / No</span><br><span class="line"><span class="string">[ Coordinator ]</span> -&gt; Commit / Rollback <span class="string">[ Peers ]</span></span><br><span class="line">                &lt;- ACK</span><br></pre></td></tr></table></figure>
 <p>  第一阶段，协调者发送更新操作给所有的参与者。每个参与者执行更新并投票是否提交或终止。当投票提交，参与者要在临时区存储更新(预写记录)。在第二阶段完成前，更新被认为是临时的。</p>
 <p>  第二阶段，协调者决定结果并通知每一个参与者。如果所有参与者都投票提交，更新被永久保存。</p>
 </li>
@@ -1237,7 +1501,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-count">6</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1250,7 +1514,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

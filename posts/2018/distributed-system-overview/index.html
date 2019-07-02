@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css">
 
 
-  <meta name="keywords" content="架构,微服务,分布式,">
+  <meta name="keywords" content="架构,分布式,微服务,">
 
 
 
@@ -95,7 +95,7 @@
 
 
 <meta name="description" content="一致性问题一致性问题是许多分布式系统的核心。我们希望分布式系统的可靠性和性能, 而不必处理分配所带来的后果 (例如, 节点之间的分歧), 解决一致性问题, 就可以解决几个相关的更高级的问题, 如原子广播和原子提交。 影响分布式系统设计选择的两个不可能结果(FLP和CAP):  FLP不可能结果   FLP论证了在一个异步的分布式系统中，即是只是容忍一个进程的错误，也不存在一个一致性算法可以保证正确">
-<meta name="keywords" content="架构,微服务,分布式">
+<meta name="keywords" content="架构,分布式,微服务">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Distributed system">
 <meta property="og:url" content="http://yoursite.com/posts/2018/distributed-system-overview/index.html">
@@ -105,7 +105,7 @@
 <meta property="og:image" content="http://yoursite.com/posts/2018/distributed-system-overview/cap.png">
 <meta property="og:image" content="http://yoursite.com/posts/2018/distributed-system-overview/replication-both.png">
 <meta property="og:image" content="http://yoursite.com/posts/2018/distributed-system-overview/vector_clock.png">
-<meta property="og:updated_time" content="2019-01-14T06:14:39.675Z">
+<meta property="og:updated_time" content="2019-07-02T08:13:50.204Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Distributed system">
 <meta name="twitter:description" content="一致性问题一致性问题是许多分布式系统的核心。我们希望分布式系统的可靠性和性能, 而不必处理分配所带来的后果 (例如, 节点之间的分歧), 解决一致性问题, 就可以解决几个相关的更高级的问题, 如原子广播和原子提交。 影响分布式系统设计选择的两个不可能结果(FLP和CAP):  FLP不可能结果   FLP论证了在一个异步的分布式系统中，即是只是容忍一个进程的错误，也不存在一个一致性算法可以保证正确">
@@ -405,7 +405,7 @@
 </li>
 <li><p>两阶段提交(2PC)</p>
 <p>  两阶段提交的消息流如下所示：</p>
-  <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[</span> <span class="string">Coordinator</span> <span class="string">]</span> <span class="bullet">-&gt;</span> <span class="string">OK</span> <span class="string">to</span> <span class="string">commit?</span>     <span class="string">[</span> <span class="string">Peers</span> <span class="string">]</span></span><br><span class="line">                <span class="string">&lt;-</span> <span class="literal">Yes</span> <span class="string">/</span> <span class="literal">No</span></span><br><span class="line"><span class="string">[</span> <span class="string">Coordinator</span> <span class="string">]</span> <span class="bullet">-&gt;</span> <span class="string">Commit</span> <span class="string">/</span> <span class="string">Rollback</span> <span class="string">[</span> <span class="string">Peers</span> <span class="string">]</span></span><br><span class="line">                <span class="string">&lt;-</span> <span class="string">ACK</span></span><br></pre></td></tr></table></figure>
+  <figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[ Coordinator ]</span> -&gt; OK to commit?     <span class="string">[ Peers ]</span></span><br><span class="line">                &lt;- Yes / No</span><br><span class="line"><span class="string">[ Coordinator ]</span> -&gt; Commit / Rollback <span class="string">[ Peers ]</span></span><br><span class="line">                &lt;- ACK</span><br></pre></td></tr></table></figure>
 <p>  第一阶段，协调者发送更新操作给所有的参与者。每个参与者执行更新并投票是否提交或终止。当投票提交，参与者要在临时区存储更新(预写记录)。在第二阶段完成前，更新被认为是临时的。</p>
 <p>  第二阶段，协调者决定结果并通知每一个参与者。如果所有参与者都投票提交，更新被永久保存。</p>
 </li>
@@ -475,9 +475,9 @@
           
             <a href="/tags/架构/" rel="tag"># 架构</a>
           
-            <a href="/tags/微服务/" rel="tag"># 微服务</a>
-          
             <a href="/tags/分布式/" rel="tag"># 分布式</a>
+          
+            <a href="/tags/微服务/" rel="tag"># 微服务</a>
           
         </div>
       
@@ -577,7 +577,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-count">6</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -590,7 +590,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
